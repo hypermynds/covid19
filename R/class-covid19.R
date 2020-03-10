@@ -16,7 +16,9 @@ Covid <- R6::R6Class(
 
         #' @description
         #' Create a new Covid object.
-        initialize = function() {},
+        initialize = function() {
+            invisible(self)
+        },
 
         #' @description
         #' This is to print the object type.
@@ -36,7 +38,7 @@ Covid <- R6::R6Class(
         #' @param start_date is a date; the beginning of the update period.
         #' @param end_date is a date; the end of the update period.
         update = function(
-            start_date = ymd('2020-02-24'),
+            start_date = lubridate::ymd('2020-02-24'),
             end_date = Sys.Date() - 1
         ) {
             private$tab <-
@@ -62,8 +64,22 @@ Covid <- R6::R6Class(
                     }
                 ) %>%
                 dplyr::bind_rows() %>%
-                dplyr::mutate(data = as_date(data))
+                dplyr::mutate(data = lubridate::as_date(data))
             invisible(self)
+        },
+
+        #' @description
+        #' This is used to export a plottable table
+        table = function() {
+            if (is.null(private$tab))
+                stop('Nothing to tab.\n')
+            private$tab %>%
+                dplyr::mutate(
+                    data = format(data, '%d/%m/%Y')
+                ) %>%
+                dplyr::mutate_if(is.double, as.integer) %>%
+                dplyr::mutate_if(is.integer, function(x) format(x, big.mark = '.', decimal.mark = ',')) %>%
+                set_colnames(simple_cap(gsub('_', ' ', names(.))))
         },
 
         #' @description
@@ -73,38 +89,40 @@ Covid <- R6::R6Class(
                 stop('Nothing to plot.\n')
             highchart() %>%
                 hc_chart(type = 'column') %>%
-                hc_xAxis(categories = private$tab$data) %>%
-                hc_yAxis(title = list(text = 'n')) %>%
+                hc_xAxis(
+                    categories = private$tab$data %>%
+                        format('%e %b')
+                ) %>%
                 hc_plotOptions(series = list(stacking = 'normal')) %>%
                 hc_legend(itemStyle = list(fontSize = '10px')) %>%
 
                 # Deceduti
                 hc_add_series(
-                    data = tbl$deceduti,
+                    data = private$tab$deceduti,
                     name = 'Deaths'
                 ) %>%
 
                 # Terapia intensiva
                 hc_add_series(
-                    data = tbl$terapia_intensiva,
+                    data = private$tab$terapia_intensiva,
                     name = 'Intensive Care'
                 ) %>%
 
                 # Ricoverati con sintomi
                 hc_add_series(
-                    data = tbl$totale_casi,
+                    data = private$tab$ricoverati_con_sintomi,
                     name = 'Hospitalized (no IC)'
                 ) %>%
 
                 # Isolamento domiciliare
                 hc_add_series(
-                    data = tbl$isolamento_domiciliare,
+                    data = private$tab$isolamento_domiciliare,
                     name = 'Home Isolation'
                 ) %>%
 
                 # Dimessi guariti
                 hc_add_series(
-                    data = tbl$dimessi_guariti,
+                    data = private$tab$dimessi_guariti,
                     name = 'Recovered'
                 )
 

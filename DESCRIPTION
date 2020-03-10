@@ -10,6 +10,7 @@ Imports:
     dplyr,
     glue,
     highcharter,
+    lubridate,
     magrittr,
     readr
 License: MIT + file LICENSE

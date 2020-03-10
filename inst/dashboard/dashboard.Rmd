@@ -1,0 +1,97 @@
+---
+title: "Italian COVID19 Monitor"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: rows
+    social: menu
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+require(dplyr)
+require(flexdashboard)
+require(highcharter)
+require(magrittr)
+
+# Building of the COVID19 object
+covid <- Covid$new()$update()
+```
+
+Sidebar {.sidebar}
+=======================================================================
+
+### Hypermynds
+
+This is a dashboard representing the outbreak and spread of COVID-19 in
+Italy.
+
+Dashboard
+=======================================================================
+
+Row
+-----------------------------------------------------------------------
+
+### Total Cases {.value-box}
+
+```{r}
+renderValueBox({
+  total_cases <- covid$get() %>%
+      tail(1) %>% 
+      pull(totale_casi) %>%
+      format(big.mark = '.', decimal.mark = ',')
+  valueBox(
+    value = total_cases,
+    icon = "fa-users"
+  )
+})
+```
+
+### Recovered {.value-box}
+
+```{r}
+renderValueBox({
+  recovered <- covid$get() %>%
+      tail(1) %>% 
+      pull(dimessi_guariti) %>%
+      format(big.mark = '.', decimal.mark = ',')
+  valueBox(
+    value = recovered,
+    icon = "fa-thumbs-up"
+  )
+})
+```
+
+### Deaths {.value-box}
+
+```{r}
+renderValueBox({
+  deaths <- covid$get() %>%
+      tail(1) %>% 
+      pull(deceduti) %>%
+      format(big.mark = '.', decimal.mark = ',')
+  valueBox(
+    value = deaths,
+    icon = "fa-times"
+  )
+})
+```
+
+Row
+-----------------------------------------------------------------------
+
+### Historical Analysis {data-width=600}
+
+```{r}
+renderHighchart({
+    covid$plot()
+})
+```
+
+Raw Data
+=======================================================================
+
+```{r}
+renderTable({
+  covid$table()
+})
+```
