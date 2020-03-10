@@ -2,7 +2,7 @@
 
 <!-- badges: start -->
 [![Build](https://img.shields.io/badge/build-passing-success.svg)](#)
-[![Version](https://img.shields.io/badge/version-v0.0.0.9000-blue.svg)](#)
+[![Version](https://img.shields.io/badge/version-v0.1.0-blue.svg)](#)
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental)
 <!-- badges: end -->
 
