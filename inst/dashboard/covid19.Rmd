@@ -4,6 +4,7 @@ output:
   flexdashboard::flex_dashboard:
     orientation: rows
     social: menu
+    source_code: embed
 runtime: shiny
 ---
 
@@ -12,6 +13,9 @@ require(dplyr)
 require(flexdashboard)
 require(highcharter)
 require(magrittr)
+
+# Access to COVID19 object
+source('class-covid19.R')
 
 # Building of the COVID19 object
 covid <- Covid$new()$update()

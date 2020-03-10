@@ -1,0 +1,10 @@
+name: covid19
+title:
+username:
+account: msaltieri
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 1928283
+bundleId: 2867410
+url: https://msaltieri.shinyapps.io/covid19/
+when: 1583840320.14435
