@@ -51,10 +51,7 @@ This returns the table with raw data.
 \subsection{Method \code{update()}}{
 This updates the inner table downloading data from the remote repo.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Covid$update(
-  start_date = lubridate::ymd("2020-02-24"),
-  end_date = Sys.Date() - 1
-)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Covid$update(start_date = lubridate::ymd("2020-02-24"), end_date = Sys.Date())}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{

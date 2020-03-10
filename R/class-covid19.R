@@ -39,27 +39,26 @@ Covid <- R6::R6Class(
         #' @param end_date is a date; the end of the update period.
         update = function(
             start_date = lubridate::ymd('2020-02-24'),
-            end_date = Sys.Date() - 1
+            end_date = Sys.Date()
         ) {
             private$tab <-
                 lapply(
                     seq(start_date, end_date, by = '1 day'),
                     function(x) {
-                        tbl_input <-
-                            try(file.path(
+                        raw_data <-
+                            file.path(
                                 private$repo,
                                 glue::glue(
                                     'dpc-covid19-ita-andamento-nazionale-{format(x, "%Y%m%d")}.csv'
                                 )
                             ) %>%
-                                readr::read_csv(col_types = readr::cols()),
-                            silent = TRUE
-                            )
-                        if (class(tbl_input)[1] != 'try-error') {
-                            return(tbl_input)
-                        } else {
-                            closeAllConnections()
+                                httr::GET()
+                        if (raw_data$status_code != 200) {
                             return()
+                        } else {
+                            raw_data %>%
+                                httr::content() %>%
+                                readr::read_csv()
                         }
                     }
                 ) %>%
