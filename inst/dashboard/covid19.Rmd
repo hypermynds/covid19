@@ -22,10 +22,23 @@ covid <- Covid$new()$update()
 Sidebar {.sidebar}
 =======================================================================
 
-### Hypermynds
-
 This is a dashboard representing the outbreak and spread of COVID-19 in
 Italy.
+
+Forecasts are computed for **deaths** and **total cases** only, based on
+exponential models.
+
+```{r}
+selectInput(
+  inputId = 'log-scale',
+  label = 'Please select a scale:',
+  choices = list('Linear' = FALSE, 'Logarithmic' = TRUE),
+  multiple = FALSE,
+  selectize = FALSE
+)
+```
+
+Prepared with &hearts; by [Hypermynds](www.hypermynds.com).
 
 Dashboard
 =======================================================================
@@ -73,7 +86,8 @@ renderValueBox({
       format(big.mark = '.', decimal.mark = ',')
   valueBox(
     value = deaths,
-    icon = "fa-times"
+    icon = "fa-times",
+    color = 'warning'
   )
 })
 ```
@@ -81,11 +95,19 @@ renderValueBox({
 Row
 -----------------------------------------------------------------------
 
-### Historical Analysis {data-width=600}
+### Historical Analysis
 
 ```{r}
 renderHighchart({
-    covid$plot()
+  covid$plot_hist(input[['log-scale']])
+})
+```
+
+### Forecast Analysis
+
+```{r}
+renderHighchart({
+  covid$plot_fore(input[['log-scale']])
 })
 ```
 

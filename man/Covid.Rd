@@ -14,8 +14,10 @@ COVID19 outbreak and spreading.
 \item \href{#method-print}{\code{Covid$print()}}
 \item \href{#method-get}{\code{Covid$get()}}
 \item \href{#method-update}{\code{Covid$update()}}
+\item \href{#method-forecast}{\code{Covid$forecast()}}
 \item \href{#method-table}{\code{Covid$table()}}
-\item \href{#method-plot}{\code{Covid$plot()}}
+\item \href{#method-plot_hist}{\code{Covid$plot_hist()}}
+\item \href{#method-plot_fore}{\code{Covid$plot_fore()}}
 \item \href{#method-clone}{\code{Covid$clone()}}
 }
 }
@@ -65,6 +67,22 @@ This updates the inner table downloading data from the remote repo.
 }
 }
 \if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-forecast"></a>}}
+\subsection{Method \code{forecast()}}{
+This is to predict the behavior on the following days.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Covid$forecast(n = 5L)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{n}}{is an integer; the number of days to forecast.}
+}
+\if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-table"></a>}}
 \subsection{Method \code{table()}}{
 This is used to export a plottable table
@@ -74,13 +92,38 @@ This is used to export a plottable table
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-plot"></a>}}
-\subsection{Method \code{plot()}}{
+\if{html}{\out{<a id="method-plot_hist"></a>}}
+\subsection{Method \code{plot_hist()}}{
 This plots a barchart of the summary.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Covid$plot()}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Covid$plot_hist(log = FALSE)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{log}}{is a boolean; if \code{TRUE}, a logarithmic scale is applied to y
+axis in plots.}
+}
+\if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-plot_fore"></a>}}
+\subsection{Method \code{plot_fore()}}{
+This plots a linechart of the forecast.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Covid$plot_fore(log = FALSE)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{log}}{is a boolean; if \code{TRUE}, a logarithmic scale is applied to y
+axis in plots.}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-clone"></a>}}
