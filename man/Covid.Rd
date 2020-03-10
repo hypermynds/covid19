@@ -14,6 +14,7 @@ COVID19 outbreak and spreading.
 \item \href{#method-print}{\code{Covid$print()}}
 \item \href{#method-get}{\code{Covid$get()}}
 \item \href{#method-update}{\code{Covid$update()}}
+\item \href{#method-table}{\code{Covid$table()}}
 \item \href{#method-plot}{\code{Covid$plot()}}
 \item \href{#method-clone}{\code{Covid$clone()}}
 }
@@ -65,6 +66,15 @@ This updates the inner table downloading data from the remote repo.
 }
 \if{html}{\out{</div>}}
 }
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-table"></a>}}
+\subsection{Method \code{table()}}{
+This is used to export a plottable table
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Covid$table()}\if{html}{\out{</div>}}
+}
+
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-plot"></a>}}

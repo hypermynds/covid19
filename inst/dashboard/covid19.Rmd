@@ -15,7 +15,8 @@ require(highcharter)
 require(magrittr)
 
 # Access to COVID19 object
-source('class-covid19.R')
+if (!require(covid19))
+    devtools::install_github("msaltieri/covid19")
 
 # Building of the COVID19 object
 covid <- Covid$new()$update()
