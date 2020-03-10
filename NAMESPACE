@@ -2,6 +2,7 @@
 
 export("%>%")
 export(Covid)
+export(launch)
 export(simple_cap)
 import(highcharter)
 importFrom(magrittr,"%<>%")

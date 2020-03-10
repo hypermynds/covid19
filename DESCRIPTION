@@ -12,7 +12,8 @@ Imports:
     highcharter,
     lubridate,
     magrittr,
-    readr
+    readr,
+    rmarkdown
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
