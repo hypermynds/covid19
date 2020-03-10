@@ -92,8 +92,8 @@ Covid <- R6::R6Class(
                 dplyr::bind_rows(
                     dplyr::tibble(
                         data = new_dates,
-                        totale_casi = predict(fit1, new_dates) %>% exp(),
-                        deceduti = predict(fit2, new_dates) %>% exp()
+                        totale_casi = exp(predict(fit1, new_dates)),
+                        deceduti = exp(predict(fit2, new_dates))
                     ) %>%
                         dplyr::mutate_if(is.double, as.integer)
                 )
