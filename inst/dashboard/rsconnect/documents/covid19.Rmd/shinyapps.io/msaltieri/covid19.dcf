@@ -5,8 +5,8 @@ account: msaltieri
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 1928283
-bundleId: 2871669
+bundleId: 2872029
 url: https://msaltieri.shinyapps.io/covid19/
-when: 1583939194.11306
+when: 1583944372.10163
 asMultiple: FALSE
 asStatic: FALSE

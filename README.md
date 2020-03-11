@@ -10,7 +10,7 @@ The R package **covid19** is used to retrieve, analyse and represent
 Italian data on the COVID19 outbreak and spreading.
 
 It uses official data issued by the Italian Government through the
-[COVID19](https://github.com/pcm-dpc/COVID-19) repository.
+[COVID-19](https://github.com/pcm-dpc/COVID-19) repository.
 
 Data are represented using [flexdashboard](https://rmarkdown.rstudio.com/flexdashboard/),
 an easy and interactive dashboard tool for R.

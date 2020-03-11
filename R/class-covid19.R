@@ -4,6 +4,10 @@
 #' This object type is used to retrieve, analyse and plot international data on
 #' COVID19 outbreak and spreading.
 #'
+#' @param region is a string; the name of the region to be returned.
+#' Use "ITA" to return the national aggregated data.
+#' @param k is an integer; is the width of the historical window used
+#' to estimate the regression parameters.
 #' @param log is a boolean; if \code{TRUE}, a logarithmic scale is applied to y
 #' axis in plots.
 #'
@@ -31,55 +35,75 @@ Covid <- R6::R6Class(
 
         #' @description
         #' This returns the table with raw data.
-        get = function() {
+        get = function(region = NULL) {
             if (is.null(private$tab)) self$update()
-            private$tab
+            if (is.null(region)) {
+                private$tab
+            } else if (region == 'ITA') {
+                private$tab %>%
+                    dplyr::select(-denominazione_regione) %>%
+                    dplyr::group_by(data) %>%
+                    dplyr::summarise_all(sum)
+            } else {
+                private$tab %>%
+                    dplyr::filter(denominazione_regione == region) %>%
+                    dplyr::select(-denominazione_regione)
+            }
+        },
+
+        #' @description
+        #' The list of all available regions.
+        regions = function() {
+            lst_regions <-
+                self$get() %>%
+                dplyr::distinct(denominazione_regione) %>%
+                dplyr::pull()
+            names(lst_regions) <- lst_regions
+            lst_regions
         },
 
         #' @description
         #' This updates the inner table downloading data from the remote repo.
-        #' @param start_date is a date; the beginning of the update period.
-        #' @param end_date is a date; the end of the update period.
-        update = function(
-            start_date = lubridate::ymd('2020-02-24'),
-            end_date = Sys.Date()
-        ) {
+        update = function() {
             private$tab <-
-                lapply(
-                    seq(start_date, end_date, by = '1 day'),
-                    function(x) {
-                        raw_data <-
-                            file.path(
-                                private$repo,
-                                glue::glue(
-                                    'dpc-covid19-ita-andamento-nazionale-{format(x, "%Y%m%d")}.csv'
-                                )
-                            ) %>%
-                                httr::GET()
-                        if (raw_data$status_code != 200) {
-                            return()
-                        } else {
-                            raw_data %>%
-                                httr::content() %>%
-                                readr::read_csv()
-                        }
-                    }
+                private$repo %>%
+                readr::read_csv(col_types = readr::cols()) %>%
+                dplyr::mutate(
+                    data = lubridate::as_date(data),
+                    denominazione_regione =
+                        dplyr::case_when(
+                            codice_regione == '04' ~ 'Trentino-Alto Adige',
+                            codice_regione == '06' ~ 'Friuli-Venezia Giulia',
+                            codice_regione == '08' ~ 'Emilia-Romagna',
+                            TRUE ~ denominazione_regione
+                        )
                 ) %>%
-                dplyr::bind_rows() %>%
-                dplyr::mutate(data = lubridate::as_date(data))
+                dplyr::select(-stato, -codice_regione, -lat, -long) %>%
+                dplyr::group_by(data, denominazione_regione) %>%
+                dplyr::summarise_all(sum) %>%
+                dplyr::ungroup()
             invisible(self)
         },
 
         #' @description
         #' This is to predict the behavior on the following days.
         #' @param n is an integer; the number of days to forecast.
-        forecast = function(n = 5L) {
-            if (is.null(private$tab))
-                stop('Nothing to forecast.\n')
+        forecast = function(region = 'ITA', n = 5L, k = 10L) {
             # Predict the total number of cases
-            fit1 <- lm(log(totale_casi) ~ data, data = private$tab)
+            fit1 <-
+                lm(
+                    formula = log(totale_casi) ~ data,
+                    data = self$get(region) %>%
+                        dplyr::filter(totale_casi != 0) %>%
+                        tail(k)
+                )
             # Predict the total number of deaths
-            fit2 <- lm(log(deceduti) ~ data, data = private$tab)
+            fit2 <- lm(
+                formula = log(deceduti) ~ data,
+                data = self$get(region) %>%
+                    dplyr::filter(deceduti != 0) %>%
+                    tail(k)
+            )
             # Forecast on the following n days
             new_dates <-
                 seq(
@@ -87,7 +111,7 @@ Covid <- R6::R6Class(
                     by = '1 day',
                     length.out = n
                 )
-            private$tab %>%
+            self$get(region) %>%
                 dplyr::select(data, totale_casi, deceduti) %>%
                 dplyr::bind_rows(
                     dplyr::tibble(
@@ -101,10 +125,11 @@ Covid <- R6::R6Class(
 
         #' @description
         #' This is used to estimate the growing factor.
-        grow_rate = function() {
-            if (is.null(private$tab))
-                stop('Nothing to calculate.\n')
-            lm(log(totale_casi) ~ data, data = private$tab) %>%
+        grow_rate = function(region = 'ITA', k = 10L) {
+            lm(
+                formula = log(totale_casi) ~ data,
+                data = self$get(region) %>% tail(k)
+            ) %>%
                 magrittr::use_series(coefficients) %>%
                 magrittr::extract2('data') %>%
                 magrittr::multiply_by(100)
@@ -112,10 +137,8 @@ Covid <- R6::R6Class(
 
         #' @description
         #' This is used to export a plottable table
-        table = function() {
-            if (is.null(private$tab))
-                stop('Nothing to tab.\n')
-            private$tab %>%
+        table = function(region = 'ITA') {
+            self$get(region) %>%
                 dplyr::mutate(
                     data = format(data, '%d/%m/%Y')
                 ) %>%
@@ -126,14 +149,13 @@ Covid <- R6::R6Class(
 
         #' @description
         #' This plots a barchart of the summary.
-        plot_hist = function(log = FALSE) {
-            if (is.null(private$tab))
-                stop('Nothing to plot.\n')
+        plot_hist = function(region = 'ITA', log = FALSE) {
+            tbl_hist <- self$get(region)
             hc <-
                 highchart() %>%
                 hc_chart(type = 'column') %>%
                 hc_xAxis(
-                    categories = private$tab$data %>%
+                    categories = tbl_hist$data %>%
                         format('%e %b')
                 ) %>%
                 hc_plotOptions(series = list(stacking = 'normal'))
@@ -146,27 +168,27 @@ Covid <- R6::R6Class(
             hc %<>%
                 # Deceduti
                 hc_add_series(
-                    data = private$tab$deceduti,
+                    data = tbl_hist$deceduti,
                     name = 'Deaths'
                 ) %>%
                 # Terapia intensiva
                 hc_add_series(
-                    data = private$tab$terapia_intensiva,
+                    data = tbl_hist$terapia_intensiva,
                     name = 'Intensive Care'
                 ) %>%
                 # Ricoverati con sintomi
                 hc_add_series(
-                    data = private$tab$ricoverati_con_sintomi,
+                    data = tbl_hist$ricoverati_con_sintomi,
                     name = 'Hospitalized (no IC)'
                 ) %>%
                 # Isolamento domiciliare
                 hc_add_series(
-                    data = private$tab$isolamento_domiciliare,
+                    data = tbl_hist$isolamento_domiciliare,
                     name = 'Home Isolation'
                 ) %>%
                 # Dimessi guariti
                 hc_add_series(
-                    data = private$tab$dimessi_guariti,
+                    data = tbl_hist$dimessi_guariti,
                     name = 'Recovered'
                 )
             hc
@@ -174,10 +196,8 @@ Covid <- R6::R6Class(
 
         #' @description
         #' This plots a linechart of the forecast.
-        plot_fore = function(log = FALSE) {
-            if (is.null(private$tab))
-                stop('Nothing to plot.\n')
-            tbl_forecast <- self$forecast()
+        plot_fore = function(region = 'ITA', log = FALSE) {
+            tbl_forecast <- self$forecast(region)
             hc <-
                 highchart() %>%
                 hc_xAxis(
@@ -210,8 +230,7 @@ Covid <- R6::R6Class(
     private = list(
 
         tab = NULL,
-
-        repo = 'https://raw.githubusercontent.com/pcm-dpc/COVID-19/master/dati-andamento-nazionale'
+        repo = 'https://raw.githubusercontent.com/pcm-dpc/COVID-19/master/dati-regioni/dpc-covid19-ita-regioni.csv'
 
     )
 
