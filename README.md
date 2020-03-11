@@ -39,7 +39,7 @@ covid19::launch()
 A new `Codiv` object is initialized by:
 
 ```r
-covid <- Covid$new()s
+covid <- Covid$new()
 ```
 
 Launch the `update` method in order to download the last available data from
