@@ -15,6 +15,7 @@ COVID19 outbreak and spreading.
 \item \href{#method-get}{\code{Covid$get()}}
 \item \href{#method-update}{\code{Covid$update()}}
 \item \href{#method-forecast}{\code{Covid$forecast()}}
+\item \href{#method-grow_rate}{\code{Covid$grow_rate()}}
 \item \href{#method-table}{\code{Covid$table()}}
 \item \href{#method-plot_hist}{\code{Covid$plot_hist()}}
 \item \href{#method-plot_fore}{\code{Covid$plot_fore()}}
@@ -81,6 +82,15 @@ This is to predict the behavior on the following days.
 }
 \if{html}{\out{</div>}}
 }
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-grow_rate"></a>}}
+\subsection{Method \code{grow_rate()}}{
+This is used to estimate the growing factor.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Covid$grow_rate()}\if{html}{\out{</div>}}
+}
+
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-table"></a>}}

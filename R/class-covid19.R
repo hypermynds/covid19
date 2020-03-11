@@ -100,6 +100,17 @@ Covid <- R6::R6Class(
         },
 
         #' @description
+        #' This is used to estimate the growing factor.
+        grow_rate = function() {
+            if (is.null(private$tab))
+                stop('Nothing to calculate.\n')
+            lm(log(totale_casi) ~ data, data = private$tab) %>%
+                magrittr::use_series(coefficients) %>%
+                magrittr::extract2('data') %>%
+                magrittr::multiply_by(100)
+        },
+
+        #' @description
         #' This is used to export a plottable table
         table = function() {
             if (is.null(private$tab))
