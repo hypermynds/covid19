@@ -9,6 +9,7 @@ runtime: shiny
 ---
 
 ```{r setup, include=FALSE}
+require(DT)
 require(covid19)
 require(dplyr)
 require(flexdashboard)
@@ -22,19 +23,17 @@ covid <- Covid$new()$update()
 Sidebar {.sidebar}
 =======================================================================
 
-[![](hm_logo.png){.class width=25% height=25%}](https://www.hypermynds.com)
+[![](hm_logo.png){.class width=20% height=20%}](https://www.hypermynds.com)
 
-This is a dashboard representing the outbreak and spread of COVID-19 in
-**Italy**.
+This dashboard represents the outbreak and spread of COVID-19 in **Italy**.
 
-On historical basis the estimated growing factor is equal to
+Forecasts are calculated adopting a simple exponential model under the
+assumption of **no containment measures**.
+
+Based on data of the last 10 days, the estimated growing factor is equal to
 **`r covid$grow_rate('ITA') %>% round(1) %>% format(decimal.mark = ',')`%**,
 corresponding to a doubling time of
 **`r log(2) %>% divide_by(1e-2 * covid$grow_rate('ITA')) %>% round(1) %>% format(decimal.mark = ',')` days**.
-
-Forecasts are calculated for **deaths** and **total cases** only, based on
-exponential models and in the absence of **containment measures**; prediction
-intervals with a **95%** confidence level are shown in the chart too.
 
 ```{r}
 selectInput(
@@ -55,6 +54,17 @@ selectInput(
   selectize = FALSE
 )
 ```
+
+----
+
+This dashboard is built from data provided by the Civil Protection department
+of the Italian Government through the [COVID-19](https://github.com/pcm-dpc/COVID-19)
+repository.
+
+The excellent [Highcharts](https://www.highcharts.com) JS library is being used
+for the charts.
+
+----
 
 Prepared with &hearts; by [Hypermynds](www.hypermynds.com).
 
@@ -133,7 +143,27 @@ Raw Data
 =======================================================================
 
 ```{r}
-renderTable({
-  covid$table(input[['region']])
+renderDataTable({
+  datatable(
+    covid$table(input[['region']]),
+    style = 'bootstrap',
+    class = 'table-bordered table-condensed table-striped',
+    extensions = c('Responsive', 'Scroller'),
+    caption = 'Scroll to view all raw data.',
+    rownames = FALSE,
+    options = list(
+      dom = 't',
+      deferRender = TRUE,
+      ordering = FALSE,
+      scrollY = 512,
+      scroller = TRUE,
+      columnDefs = list(
+        list(
+          className = 'dt-right',
+          targets = 1:10
+          )
+        )
+    )
+  )
 })
 ```

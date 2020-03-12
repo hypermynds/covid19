@@ -2,7 +2,7 @@
 
 <!-- badges: start -->
 [![Build](https://img.shields.io/badge/build-passing-success.svg)](#)
-[![Version](https://img.shields.io/badge/version-v1.0.0-blue.svg)](#)
+[![Version](https://img.shields.io/badge/version-v1.1.0-blue.svg)](#)
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental)
 <!-- badges: end -->
 
@@ -18,7 +18,7 @@ an easy and interactive dashboard tool for R.
 ## Dashboard
 
 An online version of the dashboard is available here:
-https://msaltieri.shinyapps.io/covid19.
+https://covid19.hypermynds.com.
 
 ## Getting Started
 
