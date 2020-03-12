@@ -1,5 +1,5 @@
 ---
-title: "ITA COVID-19 Monitor"
+title: "HM COVID-19 Monitor"
 output: 
   flexdashboard::flex_dashboard:
     orientation: rows
@@ -22,6 +22,8 @@ covid <- Covid$new()$update()
 Sidebar {.sidebar}
 =======================================================================
 
+[![](hm_logo.png){.class width=25% height=25%}](https://www.hypermynds.com)
+
 This is a dashboard representing the outbreak and spread of COVID-19 in
 **Italy**.
 
@@ -31,8 +33,8 @@ corresponding to a doubling time of
 **`r log(2) %>% divide_by(1e-2 * covid$grow_rate('ITA')) %>% round(1) %>% format(decimal.mark = ',')` days**.
 
 Forecasts are calculated for **deaths** and **total cases** only, based on
-exponential models; prediction intervals with a **95%** confidence level are
-shown in the chart too.
+exponential models and in the absence of **containment measures**; prediction
+intervals with a **95%** confidence level are shown in the chart too.
 
 ```{r}
 selectInput(
