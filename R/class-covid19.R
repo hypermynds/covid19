@@ -6,6 +6,8 @@
 #'
 #' @param region is a string; the name of the region to be returned.
 #' Use "ITA" to return the national aggregated data.
+#' @param series is a string; the name of the field that has to be considered.
+#' @param n is an integer; the number of days to forecast.
 #' @param k is an integer; is the width of the historical window used
 #' to estimate the regression parameters.
 #' @param log is a boolean; if \code{TRUE}, a logarithmic scale is applied to y
@@ -87,8 +89,43 @@ Covid <- R6::R6Class(
 
         #' @description
         #' This is to predict the behavior on the following days.
-        #' @param n is an integer; the number of days to forecast.
-        forecast = function(region = 'ITA', n = 5L, k = 10L) {
+        forecast = function(region = 'ITA', series = 'totale_casi', n = 5L, k = 10L) {
+            fit <-
+                try(
+                    lm(
+                        formula = log(get(series)) ~ data,
+                        data = self$get(region) %>%
+                            dplyr::filter(totale_casi != 0) %>%
+                            tail(k)
+                    ),
+                    silent = TRUE
+                )
+            if (class(fit)[1] == 'try-error')
+                return()
+            new_dates <-
+                seq(
+                    max(self$get(region)$data) + 1,
+                    by = '1 day',
+                    length.out = n
+                )
+            predict(fit, new_dates, interval = 'prediction', level = 0.95) %>%
+                exp() %>%
+                dplyr::as_tibble() %>%
+                dplyr::mutate(data = new_dates) %>%
+                dplyr::select(data, everything()) %>%
+                dplyr::bind_rows(
+                    self$get(region) %>%
+                        dplyr::select(data, series) %>%
+                        dplyr::rename(fit = series) %>%
+                        dplyr::mutate(lwr = fit, upr = fit)
+                ) %>%
+                dplyr::arrange(data) %>%
+                dplyr::mutate_if(is.double, as.integer)
+        },
+
+        #' @description
+        #' This is to predict the behavior on the following days.
+        confidence = function(region = 'ITA', n = 5L, k = 10L) {
             # Predict the total number of cases
             fit1 <-
                 lm(
@@ -150,14 +187,12 @@ Covid <- R6::R6Class(
         #' @description
         #' This plots a barchart of the summary.
         plot_hist = function(region = 'ITA', log = FALSE) {
-            tbl_hist <- self$get(region)
+            tbl_hist <- self$get(region) %>%
+                dplyr::mutate(data = datetime_to_timestamp(data))
             hc <-
                 highchart() %>%
                 hc_chart(type = 'column') %>%
-                hc_xAxis(
-                    categories = tbl_hist$data %>%
-                        format('%e %b')
-                ) %>%
+                hc_xAxis(type = 'datetime') %>%
                 hc_plotOptions(series = list(stacking = 'normal'))
             if (log) {
                 hc %<>%
@@ -168,27 +203,37 @@ Covid <- R6::R6Class(
             hc %<>%
                 # Deceduti
                 hc_add_series(
-                    data = tbl_hist$deceduti,
+                    data = tbl_hist %>%
+                        dplyr::select(data, deceduti) %>%
+                        list_parse2(),
                     name = 'Deaths'
                 ) %>%
                 # Terapia intensiva
                 hc_add_series(
-                    data = tbl_hist$terapia_intensiva,
+                    data = tbl_hist %>%
+                        dplyr::select(data, terapia_intensiva) %>%
+                        list_parse2(),
                     name = 'Intensive Care'
                 ) %>%
                 # Ricoverati con sintomi
                 hc_add_series(
-                    data = tbl_hist$ricoverati_con_sintomi,
+                    data = tbl_hist %>%
+                        dplyr::select(data, ricoverati_con_sintomi) %>%
+                        list_parse2(),
                     name = 'Hospitalized (no IC)'
                 ) %>%
                 # Isolamento domiciliare
                 hc_add_series(
-                    data = tbl_hist$isolamento_domiciliare,
+                    data = tbl_hist %>%
+                        dplyr::select(data, isolamento_domiciliare) %>%
+                        list_parse2(),
                     name = 'Home Isolation'
                 ) %>%
                 # Dimessi guariti
                 hc_add_series(
-                    data = tbl_hist$dimessi_guariti,
+                    data = tbl_hist %>%
+                        dplyr::select(data, dimessi_guariti) %>%
+                        list_parse2(),
                     name = 'Recovered'
                 )
             hc
@@ -196,31 +241,54 @@ Covid <- R6::R6Class(
 
         #' @description
         #' This plots a linechart of the forecast.
-        plot_fore = function(region = 'ITA', log = FALSE) {
-            tbl_forecast <- self$forecast(region)
+        plot_fore = function(region = 'ITA', series = c('totale_casi', 'deceduti'), log = FALSE) {
             hc <-
                 highchart() %>%
-                hc_xAxis(
-                    categories = tbl_forecast$data %>%
-                        format('%e %b')
-                )
+                hc_xAxis(type = 'datetime')
             if (log) {
                 hc %<>%
                     hc_yAxis(
                         type = 'logarithmic'
                     )
             }
-            hc %<>%
-                # Deceduti
-                hc_add_series(
-                    data = tbl_forecast$deceduti,
-                    name = 'Deaths'
-                ) %>%
-                # Terapia intensiva
-                hc_add_series(
-                    data = tbl_forecast$totale_casi,
-                    name = 'Total Cases'
-                )
+            for (field in series) {
+                tbl_forecast <-
+                    try(
+                        self$forecast(region, field) %>%
+                            dplyr::mutate(data = datetime_to_timestamp(data)),
+                        silent = TRUE
+                    )
+                if (class(tbl_forecast)[1] == 'try-error')
+                    next
+                line_color <- private$palette[which(series == field)]
+                hc %<>%
+                    hc_add_series(
+                        data = tbl_forecast %>%
+                            dplyr::select(data, fit) %>%
+                            list_parse2(),
+                        name = simple_cap(gsub('_', ' ', field)),
+                        zIndex = 1,
+                        marker = list(
+                            fillColor = 'white',
+                            lineWidth = 1,
+                            lineColor = line_color
+                        )
+                    ) %>%
+                    # Terapia intensiva
+                    hc_add_series(
+                        data = tbl_forecast %>%
+                            dplyr::select(data, lwr, upr) %>%
+                            list_parse2(),
+                        name = 'Range',
+                        type = 'arearange',
+                        lineWidth = 0,
+                        linkedTo = ':previous',
+                        color = line_color,
+                        fillOpacity = 0.3,
+                        zIndex = 0,
+                        marker = list(enabled = FALSE)
+                    )
+            }
             hc
         }
 
@@ -230,6 +298,8 @@ Covid <- R6::R6Class(
     private = list(
 
         tab = NULL,
+
+        palette = c("#7cb5ec", "#434348", "#90ed7d", "#f7a35c", "#8085e9", "#f15c80", "#e4d354", "#2b908f", "#f45b5b", "#91e8e1"),
         repo = 'https://raw.githubusercontent.com/pcm-dpc/COVID-19/master/dati-regioni/dpc-covid19-ita-regioni.csv'
 
     )

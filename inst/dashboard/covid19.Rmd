@@ -15,7 +15,7 @@ require(flexdashboard)
 require(highcharter)
 require(magrittr)
 
-# Building of the COVID19 object
+# Building the COVID19 object
 covid <- Covid$new()$update()
 ```
 
@@ -26,12 +26,13 @@ This is a dashboard representing the outbreak and spread of COVID-19 in
 **Italy**.
 
 On historical basis the estimated growing factor is equal to
-**`r covid$grow_rate('ITA') %>% round(2) %>% format(decimal.mark = ',')`%**,
+**`r covid$grow_rate('ITA') %>% round(1) %>% format(decimal.mark = ',')`%**,
 corresponding to a doubling time of
 **`r log(2) %>% divide_by(1e-2 * covid$grow_rate('ITA')) %>% round(1) %>% format(decimal.mark = ',')` days**.
 
-Forecasts are computed for **deaths** and **total cases** only, based on
-exponential models.
+Forecasts are calculated for **deaths** and **total cases** only, based on
+exponential models; prediction intervals with a **95%** confidence level are
+shown in the chart too.
 
 ```{r}
 selectInput(
@@ -110,7 +111,7 @@ renderValueBox({
 Row
 -----------------------------------------------------------------------
 
-### Historical Analysis
+### Historical Data
 
 ```{r}
 renderHighchart({

@@ -4,10 +4,10 @@
 \name{covid19-package}
 \alias{covid19}
 \alias{covid19-package}
-\title{covid19: A COVID19 data analyser}
+\title{covid19: A COVID-19 data analyser}
 \description{
 The R package covid19 is used to retrieve, analyse and represent
-    Italian data on the COVID19 outbreak and spreading.
+    Italian data on the COVID-19 outbreak and spreading.
 }
 \author{
 \strong{Maintainer}: Michele Stefano Altieri \email{msa@hypermynds.com}

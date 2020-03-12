@@ -13,10 +13,11 @@ COVID19 outbreak and spreading.
 \item \href{#method-new}{\code{Covid$new()}}
 \item \href{#method-print}{\code{Covid$print()}}
 \item \href{#method-get}{\code{Covid$get()}}
+\item \href{#method-regions}{\code{Covid$regions()}}
 \item \href{#method-update}{\code{Covid$update()}}
 \item \href{#method-forecast}{\code{Covid$forecast()}}
+\item \href{#method-confidence}{\code{Covid$confidence()}}
 \item \href{#method-grow_rate}{\code{Covid$grow_rate()}}
-\item \href{#method-regions}{\code{Covid$regions()}}
 \item \href{#method-table}{\code{Covid$table()}}
 \item \href{#method-plot_hist}{\code{Covid$plot_hist()}}
 \item \href{#method-plot_fore}{\code{Covid$plot_fore()}}
@@ -59,6 +60,15 @@ Use "ITA" to return the national aggregated data.}
 }
 }
 \if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-regions"></a>}}
+\subsection{Method \code{regions()}}{
+The list of all available regions.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Covid$regions()}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-update"></a>}}
 \subsection{Method \code{update()}}{
 This updates the inner table downloading data from the remote repo.
@@ -72,7 +82,31 @@ This updates the inner table downloading data from the remote repo.
 \subsection{Method \code{forecast()}}{
 This is to predict the behavior on the following days.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Covid$forecast(region = "ITA", n = 5L, k = 10L)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Covid$forecast(region = "ITA", series = "totale_casi", n = 5L, k = 10L)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{region}}{is a string; the name of the region to be returned.
+Use "ITA" to return the national aggregated data.}
+
+\item{\code{series}}{is a string; the name of the field that has to be considered.}
+
+\item{\code{n}}{is an integer; the number of days to forecast.}
+
+\item{\code{k}}{is an integer; is the width of the historical window used
+to estimate the regression parameters.}
+}
+\if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-confidence"></a>}}
+\subsection{Method \code{confidence()}}{
+This is to predict the behavior on the following days.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Covid$confidence(region = "ITA", n = 5L, k = 10L)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -108,15 +142,6 @@ to estimate the regression parameters.}
 }
 \if{html}{\out{</div>}}
 }
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-regions"></a>}}
-\subsection{Method \code{regions()}}{
-The list of all available regions.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Covid$regions()}\if{html}{\out{</div>}}
-}
-
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-table"></a>}}
@@ -160,7 +185,11 @@ axis in plots.}
 \subsection{Method \code{plot_fore()}}{
 This plots a linechart of the forecast.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Covid$plot_fore(region = "ITA", log = FALSE)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Covid$plot_fore(
+  region = "ITA",
+  series = c("totale_casi", "deceduti"),
+  log = FALSE
+)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -168,6 +197,8 @@ This plots a linechart of the forecast.
 \describe{
 \item{\code{region}}{is a string; the name of the region to be returned.
 Use "ITA" to return the national aggregated data.}
+
+\item{\code{series}}{is a string; the name of the field that has to be considered.}
 
 \item{\code{log}}{is a boolean; if \code{TRUE}, a logarithmic scale is applied to y
 axis in plots.}
