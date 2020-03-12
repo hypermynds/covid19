@@ -16,7 +16,6 @@ COVID19 outbreak and spreading.
 \item \href{#method-regions}{\code{Covid$regions()}}
 \item \href{#method-update}{\code{Covid$update()}}
 \item \href{#method-forecast}{\code{Covid$forecast()}}
-\item \href{#method-confidence}{\code{Covid$confidence()}}
 \item \href{#method-grow_rate}{\code{Covid$grow_rate()}}
 \item \href{#method-table}{\code{Covid$table()}}
 \item \href{#method-plot_hist}{\code{Covid$plot_hist()}}
@@ -92,28 +91,6 @@ This is to predict the behavior on the following days.
 Use "ITA" to return the national aggregated data.}
 
 \item{\code{series}}{is a string; the name of the field that has to be considered.}
-
-\item{\code{n}}{is an integer; the number of days to forecast.}
-
-\item{\code{k}}{is an integer; is the width of the historical window used
-to estimate the regression parameters.}
-}
-\if{html}{\out{</div>}}
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-confidence"></a>}}
-\subsection{Method \code{confidence()}}{
-This is to predict the behavior on the following days.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Covid$confidence(region = "ITA", n = 5L, k = 10L)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{region}}{is a string; the name of the region to be returned.
-Use "ITA" to return the national aggregated data.}
 
 \item{\code{n}}{is an integer; the number of days to forecast.}
 

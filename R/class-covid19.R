@@ -108,8 +108,7 @@ Covid <- R6::R6Class(
                     by = '1 day',
                     length.out = n
                 )
-            predict(fit, new_dates, interval = 'prediction', level = 0.95) %>%
-                exp() %>%
+            exp(predict(fit, new_dates, interval = 'prediction', level = 0.95)) %>%
                 dplyr::as_tibble() %>%
                 dplyr::mutate(data = new_dates) %>%
                 dplyr::select(data, everything()) %>%
@@ -121,43 +120,6 @@ Covid <- R6::R6Class(
                 ) %>%
                 dplyr::arrange(data) %>%
                 dplyr::mutate_if(is.double, as.integer)
-        },
-
-        #' @description
-        #' This is to predict the behavior on the following days.
-        confidence = function(region = 'ITA', n = 5L, k = 10L) {
-            # Predict the total number of cases
-            fit1 <-
-                lm(
-                    formula = log(totale_casi) ~ data,
-                    data = self$get(region) %>%
-                        dplyr::filter(totale_casi != 0) %>%
-                        tail(k)
-                )
-            # Predict the total number of deaths
-            fit2 <- lm(
-                formula = log(deceduti) ~ data,
-                data = self$get(region) %>%
-                    dplyr::filter(deceduti != 0) %>%
-                    tail(k)
-            )
-            # Forecast on the following n days
-            new_dates <-
-                seq(
-                    max(private$tab$data) + 1,
-                    by = '1 day',
-                    length.out = n
-                )
-            self$get(region) %>%
-                dplyr::select(data, totale_casi, deceduti) %>%
-                dplyr::bind_rows(
-                    dplyr::tibble(
-                        data = new_dates,
-                        totale_casi = exp(predict(fit1, new_dates)),
-                        deceduti = exp(predict(fit2, new_dates))
-                    ) %>%
-                        dplyr::mutate_if(is.double, as.integer)
-                )
         },
 
         #' @description
@@ -242,6 +204,10 @@ Covid <- R6::R6Class(
         #' @description
         #' This plots a linechart of the forecast.
         plot_fore = function(region = 'ITA', series = c('totale_casi', 'deceduti'), log = FALSE) {
+            labels <- list(
+                'totale_casi' = 'Total Cases',
+                'deceduti' = 'Deaths'
+            )
             hc <-
                 highchart() %>%
                 hc_xAxis(type = 'datetime')
@@ -266,7 +232,7 @@ Covid <- R6::R6Class(
                         data = tbl_forecast %>%
                             dplyr::select(data, fit) %>%
                             list_parse2(),
-                        name = simple_cap(gsub('_', ' ', field)),
+                        name = labels[[field]],
                         zIndex = 1,
                         marker = list(
                             fillColor = 'white',
