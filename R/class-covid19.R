@@ -122,12 +122,16 @@ Covid <- R6::R6Class(
                 )
             if (class(fit)[1] == 'try-error')
                 return()
+            end_date <-
+                max(
+                    max(self$dates()),
+                    fit_date + n
+                )
             new_dates <-
                 seq(
                     fit_date + 1,
-                    # max(self$dates()) + n,
-                    by = '1 day',
-                    length.out = 5
+                    end_date,
+                    by = '1 day'
                 )
             exp(predict(fit, new_dates, interval = 'prediction', level = 0.95)) %>%
                 dplyr::as_tibble() %>%
