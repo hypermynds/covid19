@@ -14,12 +14,14 @@ COVID19 outbreak and spreading.
 \item \href{#method-print}{\code{Covid$print()}}
 \item \href{#method-get}{\code{Covid$get()}}
 \item \href{#method-regions}{\code{Covid$regions()}}
+\item \href{#method-dates}{\code{Covid$dates()}}
 \item \href{#method-update}{\code{Covid$update()}}
 \item \href{#method-forecast}{\code{Covid$forecast()}}
 \item \href{#method-grow_rate}{\code{Covid$grow_rate()}}
 \item \href{#method-table}{\code{Covid$table()}}
 \item \href{#method-plot_hist}{\code{Covid$plot_hist()}}
 \item \href{#method-plot_fore}{\code{Covid$plot_fore()}}
+\item \href{#method-plot_fore2}{\code{Covid$plot_fore2()}}
 \item \href{#method-clone}{\code{Covid$clone()}}
 }
 }
@@ -68,6 +70,15 @@ The list of all available regions.
 
 }
 \if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-dates"></a>}}
+\subsection{Method \code{dates()}}{
+The list of dates available to fit a regression model.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Covid$dates()}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-update"></a>}}
 \subsection{Method \code{update()}}{
 This updates the inner table downloading data from the remote repo.
@@ -81,7 +92,13 @@ This updates the inner table downloading data from the remote repo.
 \subsection{Method \code{forecast()}}{
 This is to predict the behavior on the following days.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Covid$forecast(region = "ITA", series = "totale_casi", n = 5L, k = 10L)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Covid$forecast(
+  region = "ITA",
+  series = "totale_casi",
+  fit_date = max(self$dates()),
+  n = 5L,
+  k = 10L
+)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -91,6 +108,9 @@ This is to predict the behavior on the following days.
 Use "ITA" to return the national aggregated data.}
 
 \item{\code{series}}{is a string; the name of the field that has to be considered.}
+
+\item{\code{fit_date}}{is a date; it is the end of the historical time series used
+to produce the forecasts.}
 
 \item{\code{n}}{is an integer; the number of days to forecast.}
 
@@ -176,6 +196,36 @@ This plots a linechart of the forecast.
 Use "ITA" to return the national aggregated data.}
 
 \item{\code{series}}{is a string; the name of the field that has to be considered.}
+
+\item{\code{log}}{is a boolean; if \code{TRUE}, a logarithmic scale is applied to y
+axis in plots.}
+}
+\if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-plot_fore2"></a>}}
+\subsection{Method \code{plot_fore2()}}{
+This plots a linechart of the forecast.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Covid$plot_fore2(
+  region = "ITA",
+  series = "totale_casi",
+  fit_date = max(self$dates()),
+  log = FALSE
+)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{region}}{is a string; the name of the region to be returned.
+Use "ITA" to return the national aggregated data.}
+
+\item{\code{series}}{is a string; the name of the field that has to be considered.}
+
+\item{\code{fit_date}}{is a date; it is the end of the historical time series used
+to produce the forecasts.}
 
 \item{\code{log}}{is a boolean; if \code{TRUE}, a logarithmic scale is applied to y
 axis in plots.}

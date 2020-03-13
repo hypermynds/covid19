@@ -20,7 +20,7 @@ require(magrittr)
 covid <- Covid$new()$update()
 ```
 
-Sidebar {.sidebar}
+Summary {.sidebar}
 =======================================================================
 
 [![](hm_logo.png){.class width=20% height=20%}](https://www.hypermynds.com)
@@ -37,19 +37,16 @@ corresponding to a doubling time of
 
 ```{r}
 selectInput(
-  inputId = 'log-scale',
-  label = 'Please select a scale:',
-  choices = list('Linear' = FALSE, 'Logarithmic' = TRUE),
-  multiple = FALSE,
-  selectize = FALSE
-)
-```
-
-```{r}
-selectInput(
   inputId = 'region',
   label = 'Please select a region:',
   choices = c('Italia' = 'ITA', covid$regions()),
+  multiple = FALSE,
+  selectize = FALSE
+)
+selectInput(
+  inputId = 'log-scale',
+  label = 'Please select a scale:',
+  choices = list('Linear' = FALSE, 'Logarithmic' = TRUE),
   multiple = FALSE,
   selectize = FALSE
 )
@@ -134,9 +131,37 @@ renderHighchart({
 ### Forecast Analysis
 
 ```{r}
-renderHighchart({
-  covid$plot_fore(region = input[['region']], log = input[['log-scale']])
-})
+fillCol(
+  height = 600,
+  flex = c(NA, 1), 
+  inputPanel(
+    selectInput(
+      inputId = 'fit-series',
+      label = 'Please select a variable:',
+      choices = list('Total Cases' = 'totale_casi', 'Deaths' = 'deceduti'),
+      multiple = FALSE,
+      selectize = FALSE
+    ),
+    dateInput(
+      inputId = 'fit-date',
+      label = 'Please select a fit date:',
+      value = max(covid$dates()),
+      min = min(covid$dates()),
+      max = max(covid$dates()),
+      format = 'dd/mm/yyyy',
+      weekstart = 1,
+      autoclose = TRUE
+    )
+  ),
+  renderHighchart({
+    covid$plot_fore2(
+      region = input[['region']],
+      series = input[['fit-series']],
+      fit_date = input[['fit-date']],
+      log = input[['log-scale']]
+    )
+  })
+)
 ```
 
 Raw Data

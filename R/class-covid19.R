@@ -7,6 +7,8 @@
 #' @param region is a string; the name of the region to be returned.
 #' Use "ITA" to return the national aggregated data.
 #' @param series is a string; the name of the field that has to be considered.
+#' @param fit_date is a date; it is the end of the historical time series used
+#' to produce the forecasts.
 #' @param n is an integer; the number of days to forecast.
 #' @param k is an integer; is the width of the historical window used
 #' to estimate the regression parameters.
@@ -65,6 +67,15 @@ Covid <- R6::R6Class(
         },
 
         #' @description
+        #' The list of dates available to fit a regression model.
+        dates = function() {
+            self$get('ITA') %>%
+                dplyr::filter(data >= '2020-03-04') %>%
+                dplyr::distinct(data) %>%
+                dplyr::pull()
+        },
+
+        #' @description
         #' This updates the inner table downloading data from the remote repo.
         update = function() {
             private$tab <-
@@ -89,13 +100,22 @@ Covid <- R6::R6Class(
 
         #' @description
         #' This is to predict the behavior on the following days.
-        forecast = function(region = 'ITA', series = 'totale_casi', n = 5L, k = 10L) {
+        forecast = function(
+            region = 'ITA',
+            series = 'totale_casi',
+            fit_date = max(self$dates()),
+            n = 5L,
+            k = 10L
+        ) {
             fit <-
                 try(
                     lm(
                         formula = log(get(series)) ~ data,
                         data = self$get(region) %>%
-                            dplyr::filter(totale_casi != 0) %>%
+                            dplyr::filter(
+                                totale_casi != 0,
+                                data <= fit_date
+                            ) %>%
                             tail(k)
                     ),
                     silent = TRUE
@@ -104,9 +124,10 @@ Covid <- R6::R6Class(
                 return()
             new_dates <-
                 seq(
-                    max(self$get(region)$data) + 1,
+                    fit_date + 1,
+                    # max(self$dates()) + n,
                     by = '1 day',
-                    length.out = n
+                    length.out = 5
                 )
             exp(predict(fit, new_dates, interval = 'prediction', level = 0.95)) %>%
                 dplyr::as_tibble() %>%
@@ -114,12 +135,14 @@ Covid <- R6::R6Class(
                 dplyr::select(data, everything()) %>%
                 dplyr::bind_rows(
                     self$get(region) %>%
+                        dplyr::filter(data <= fit_date) %>%
                         dplyr::select(data, series) %>%
                         dplyr::rename(fit = series) %>%
                         dplyr::mutate(lwr = fit, upr = fit)
                 ) %>%
                 dplyr::arrange(data) %>%
-                dplyr::mutate_if(is.double, as.integer)
+                dplyr::mutate_if(is.double, as.integer) %>%
+                dplyr::mutate(data = lubridate::as_date(data))
         },
 
         #' @description
@@ -255,6 +278,76 @@ Covid <- R6::R6Class(
                         marker = list(enabled = FALSE)
                     )
             }
+            hc
+        },
+
+        #' @description
+        #' This plots a linechart of the forecast.
+        plot_fore2 = function(
+            region = 'ITA',
+            series = 'totale_casi',
+            fit_date = max(self$dates()),
+            log = FALSE
+        ) {
+            hc <-
+                highchart() %>%
+                hc_xAxis(type = 'datetime')
+            if (log) {
+                hc %<>%
+                    hc_yAxis(
+                        type = 'logarithmic'
+                    )
+            }
+            tbl_forecast <-
+                try(
+                    self$forecast(region, series, fit_date) %>%
+                        dplyr::filter(data >= fit_date) %>%
+                        dplyr::mutate(data = datetime_to_timestamp(data)),
+                    silent = TRUE
+                )
+            if (class(tbl_forecast)[1] != 'try-error') {
+                hc %<>%
+                    hc_add_series(
+                        data = tbl_forecast %>%
+                            dplyr::select(data, fit) %>%
+                            list_parse2(),
+                        name = 'Forecast',
+                        zIndex = 1,
+                        marker = list(
+                            fillColor = 'white',
+                            lineWidth = 1,
+                            lineColor = private$palette[1]
+                        )
+                    ) %>%
+                    hc_add_series(
+                        data = tbl_forecast %>%
+                            dplyr::select(data, lwr, upr) %>%
+                            list_parse2(),
+                        name = 'Range',
+                        type = 'arearange',
+                        lineWidth = 0,
+                        linkedTo = ':previous',
+                        color = private$palette[1],
+                        fillOpacity = 0.3,
+                        zIndex = 0,
+                        marker = list(enabled = FALSE)
+                    )
+            }
+            tbl_actual <- self$get(region) %>%
+                dplyr::mutate(data = datetime_to_timestamp(data))
+            hc %<>%
+                hc_add_series(
+                    data = tbl_actual %>%
+                        dplyr::select(data, series) %>%
+                        list_parse2(),
+                    name = 'Actual',
+                    zIndex = 1,
+                    marker = list(
+                        fillColor = 'white',
+                        lineWidth = 0.8,
+                        lineColor = private$palette[2]
+                    )
+                )
             hc
         }
 
