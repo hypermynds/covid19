@@ -63,7 +63,7 @@ for the charts.
 
 ----
 
-Prepared with &hearts; by [Hypermynds](www.hypermynds.com).
+Prepared with &hearts; by [Hypermynds](https://www.hypermynds.com).
 
 Dashboard
 =======================================================================
