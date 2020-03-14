@@ -10,8 +10,6 @@
 #' @param fit_date is a date; it is the end of the historical time series used
 #' to produce the forecasts.
 #' @param n is an integer; the number of days to forecast.
-#' @param k is an integer; is the width of the historical window used
-#' to estimate the regression parameters.
 #' @param log is a boolean; if \code{TRUE}, a logarithmic scale is applied to y
 #' axis in plots.
 #'
@@ -70,7 +68,7 @@ Covid <- R6::R6Class(
         #' The list of dates available to fit a regression model.
         dates = function() {
             self$get('ITA') %>%
-                dplyr::filter(data >= '2020-03-04') %>%
+                dplyr::filter(data >= '2020-03-01') %>%
                 dplyr::distinct(data) %>%
                 dplyr::pull()
         },
@@ -104,19 +102,34 @@ Covid <- R6::R6Class(
             region = 'ITA',
             series = 'totale_casi',
             fit_date = max(self$dates()),
-            n = 5L,
-            k = 10L
+            n = 5L
         ) {
+            tbl_data <-
+                self$get(region) %>%
+                dplyr::filter(
+                    get(series) != 0,
+                    data <= fit_date
+                )
+            k <-
+                sapply(
+                    7:nrow(tbl_data),
+                    function(x)
+                        lm(
+                            formula = log(get(series)) ~ data,
+                            data = tbl_data %>% tail(x)
+                        ) %>%
+                        summary() %>%
+                        magrittr::extract2('adj.r.squared') %>%
+                        magrittr::set_names(x)
+                ) %>%
+                which.max() %>%
+                names() %>%
+                as.integer()
             fit <-
                 try(
                     lm(
                         formula = log(get(series)) ~ data,
-                        data = self$get(region) %>%
-                            dplyr::filter(
-                                totale_casi != 0,
-                                data <= fit_date
-                            ) %>%
-                            tail(k)
+                        data = tbl_data %>% tail(k)
                     ),
                     silent = TRUE
                 )
@@ -133,7 +146,7 @@ Covid <- R6::R6Class(
                     end_date,
                     by = '1 day'
                 )
-            exp(predict(fit, new_dates, interval = 'prediction', level = 0.95)) %>%
+            exp(predict(fit, new_dates, interval = 'prediction', level = 0.99)) %>%
                 dplyr::as_tibble() %>%
                 dplyr::mutate(data = new_dates) %>%
                 dplyr::select(data, everything()) %>%
@@ -151,7 +164,22 @@ Covid <- R6::R6Class(
 
         #' @description
         #' This is used to estimate the growing factor.
-        grow_rate = function(region = 'ITA', k = 10L) {
+        grow_rate = function(region = 'ITA') {
+            k <-
+                sapply(
+                    7:nrow(self$get(region)),
+                    function(x)
+                        lm(
+                            formula = log(totale_casi) ~ data,
+                            data = self$get(region) %>% tail(x)
+                        ) %>%
+                        summary() %>%
+                        magrittr::extract2('adj.r.squared') %>%
+                        magrittr::set_names(x)
+                ) %>%
+                which.max() %>%
+                names() %>%
+                as.integer()
             lm(
                 formula = log(totale_casi) ~ data,
                 data = self$get(region) %>% tail(k)
@@ -175,14 +203,33 @@ Covid <- R6::R6Class(
 
         #' @description
         #' This plots a barchart of the summary.
-        plot_hist = function(region = 'ITA', log = FALSE) {
-            tbl_hist <- self$get(region) %>%
-                dplyr::mutate(data = datetime_to_timestamp(data))
+        #' @param delta is a boolean; if \code{TRUE}, the difference from the
+        #' previous day is shown.
+        plot_hist = function(region = 'ITA', log = FALSE, delta = FALSE) {
+            tbl_hist <- self$get(region)
+            if (delta) {
+                tbl_hist %<>%
+                    head(1) %>%
+                    dplyr::bind_rows(
+                        tbl_hist %>%
+                            dplyr::mutate_at(
+                                vars(-data),
+                                function(x) x - lag(x)
+                            ) %>%
+                            tidyr::drop_na()
+                    )
+            }
+            tbl_hist %<>% dplyr::mutate(data = datetime_to_timestamp(data))
             hc <-
                 highchart() %>%
-                hc_chart(type = 'column') %>%
+                hc_chart(type = 'column', zoomType = 'x') %>%
+                hc_subtitle(text = 'Click and drag in the plot area to zoom in') %>%
                 hc_xAxis(type = 'datetime') %>%
-                hc_plotOptions(series = list(stacking = 'normal'))
+                hc_plotOptions(series = list(stacking = 'normal')) %>%
+                hc_tooltip(
+                    footerFormat = '<b>  Total: {point.total:,0f}</b>',
+                    shared = TRUE
+                )
             if (log) {
                 hc %<>%
                     hc_yAxis(
@@ -237,6 +284,8 @@ Covid <- R6::R6Class(
             )
             hc <-
                 highchart() %>%
+                hc_chart(zoomType = 'x') %>%
+                hc_subtitle(text = 'Click and drag in the plot area to zoom in') %>%
                 hc_xAxis(type = 'datetime')
             if (log) {
                 hc %<>%
@@ -295,6 +344,8 @@ Covid <- R6::R6Class(
         ) {
             hc <-
                 highchart() %>%
+                hc_chart(zoomType = 'x') %>%
+                hc_subtitle(text = 'Click and drag in the plot area to zoom in') %>%
                 hc_xAxis(type = 'datetime')
             if (log) {
                 hc %<>%

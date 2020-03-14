@@ -5,6 +5,7 @@ output:
     orientation: rows
     social: menu
     source_code: "https://github.com/msaltieri/covid19"
+    favicon: favicon.png
 runtime: shiny
 ---
 
@@ -20,7 +21,7 @@ require(magrittr)
 covid <- Covid$new()$update()
 ```
 
-Summary {.sidebar}
+Summary {.sidebar data-width=275}
 =======================================================================
 
 [![](hm_logo.png){.class width=20% height=20%}](https://www.hypermynds.com)
@@ -123,9 +124,29 @@ Row
 ### Historical Data
 
 ```{r}
-renderHighchart({
-  covid$plot_hist(region = input[['region']], log = input[['log-scale']])
-})
+fillCol(
+  height = 600,
+  flex = c(NA, 1), 
+  inputPanel(
+    selectInput(
+      inputId = 'is-delta',
+      label = 'Please select a metric:',
+      choices = list(
+        'Cumulative' = FALSE,
+        'New Cases Only' = TRUE
+      ),
+      multiple = FALSE,
+      selectize = FALSE
+    )
+  ),
+  renderHighchart({
+    covid$plot_hist(
+      region = input[['region']],
+      log = input[['log-scale']],
+      delta = input[['is-delta']]
+    )
+  })
+)
 ```
 
 ### Forecast Analysis
@@ -138,7 +159,10 @@ fillCol(
     selectInput(
       inputId = 'fit-series',
       label = 'Please select a variable:',
-      choices = list('Total Cases' = 'totale_casi', 'Deaths' = 'deceduti'),
+      choices = list(
+        'Total Cases' = 'totale_casi',
+        'Deaths' = 'deceduti'
+      ),
       multiple = FALSE,
       selectize = FALSE
     ),
@@ -174,7 +198,7 @@ renderDataTable({
     style = 'bootstrap',
     class = 'table-bordered table-condensed table-striped',
     extensions = c('Responsive', 'Scroller'),
-    caption = 'Scroll to view all raw data.',
+    caption = 'Scroll down to view all the raw data.',
     rownames = FALSE,
     options = list(
       dom = 't',

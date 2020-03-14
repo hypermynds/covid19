@@ -96,8 +96,7 @@ This is to predict the behavior on the following days.
   region = "ITA",
   series = "totale_casi",
   fit_date = max(self$dates()),
-  n = 5L,
-  k = 10L
+  n = 5L
 )}\if{html}{\out{</div>}}
 }
 
@@ -113,9 +112,6 @@ Use "ITA" to return the national aggregated data.}
 to produce the forecasts.}
 
 \item{\code{n}}{is an integer; the number of days to forecast.}
-
-\item{\code{k}}{is an integer; is the width of the historical window used
-to estimate the regression parameters.}
 }
 \if{html}{\out{</div>}}
 }
@@ -125,7 +121,7 @@ to estimate the regression parameters.}
 \subsection{Method \code{grow_rate()}}{
 This is used to estimate the growing factor.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Covid$grow_rate(region = "ITA", k = 10L)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Covid$grow_rate(region = "ITA")}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -133,9 +129,6 @@ This is used to estimate the growing factor.
 \describe{
 \item{\code{region}}{is a string; the name of the region to be returned.
 Use "ITA" to return the national aggregated data.}
-
-\item{\code{k}}{is an integer; is the width of the historical window used
-to estimate the regression parameters.}
 }
 \if{html}{\out{</div>}}
 }
@@ -162,7 +155,7 @@ Use "ITA" to return the national aggregated data.}
 \subsection{Method \code{plot_hist()}}{
 This plots a barchart of the summary.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Covid$plot_hist(region = "ITA", log = FALSE)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Covid$plot_hist(region = "ITA", log = FALSE, delta = FALSE)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -173,6 +166,9 @@ Use "ITA" to return the national aggregated data.}
 
 \item{\code{log}}{is a boolean; if \code{TRUE}, a logarithmic scale is applied to y
 axis in plots.}
+
+\item{\code{delta}}{is a boolean; if \code{TRUE}, the difference from the
+previous day is shown.}
 }
 \if{html}{\out{</div>}}
 }
