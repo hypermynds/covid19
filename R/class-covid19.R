@@ -244,6 +244,13 @@ Covid <- R6::R6Class(
                         list_parse2(),
                     name = 'Deaths'
                 ) %>%
+                # Dimessi guariti
+                hc_add_series(
+                    data = tbl_hist %>%
+                        dplyr::select(data, dimessi_guariti) %>%
+                        list_parse2(),
+                    name = 'Recovered'
+                ) %>%
                 # Terapia intensiva
                 hc_add_series(
                     data = tbl_hist %>%
@@ -264,13 +271,6 @@ Covid <- R6::R6Class(
                         dplyr::select(data, isolamento_domiciliare) %>%
                         list_parse2(),
                     name = 'Home Isolation'
-                ) %>%
-                # Dimessi guariti
-                hc_add_series(
-                    data = tbl_hist %>%
-                        dplyr::select(data, dimessi_guariti) %>%
-                        list_parse2(),
-                    name = 'Recovered'
                 )
             hc
         },
