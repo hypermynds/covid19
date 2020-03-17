@@ -81,6 +81,10 @@ Covid <- R6::R6Class(
                 readr::read_csv(col_types = readr::cols()) %>%
                 dplyr::mutate(
                     data = lubridate::as_date(data),
+                    data = dplyr::case_when(
+                        data > Sys.Date() ~ Sys.Date(),
+                        TRUE ~ data
+                    ),
                     denominazione_regione =
                         dplyr::case_when(
                             codice_regione == '04' ~ 'Trentino-Alto Adige',
