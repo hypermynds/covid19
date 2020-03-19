@@ -101,6 +101,73 @@ Covid <- R6::R6Class(
         },
 
         #' @description
+        #' This function implements a forecast based on a time-dependent SIR
+        #' model.
+        sir = function(
+            region = 'ITA',
+            fit_date = max(self$dates()),
+            end_date = as.Date('2020-04-30')
+        ) {
+            tbl_data <-
+                Covid$new()$get(region) %>%
+                # mutate(R = deceduti + dimessi_guariti) %>%
+                select(
+                    data,
+                    X = totale_attualmente_positivi,
+                    R = dimessi_guariti,
+                    D = deceduti
+                ) %>%
+                filter(data <= fit_date) %>%
+                bind_rows(
+                    tibble(
+                        data = seq(fit_date + 1, end_date, by = '1 day'),
+                        X = as.numeric(NA),
+                        R = as.numeric(NA),
+                        D = as.numeric(NA)
+                    )
+                )
+            idx <- which(is.na(tbl_data$X))
+            for (i in idx) {
+                # Update fields
+                tbl_data %<>%
+                    mutate(
+                        X_1 = lead(X),
+                        R_1 = lead(R),
+                        D_1 = lead(D),
+                        beta = ((X_1 - X) + (R_1 - R) + (D_1 - D)) / X,
+                        gamma = ((R_1 - R) + (D_1 - D)) / X,
+                        rho = (D_1 - D) / ((R_1 - R) + (D_1 - D))
+                    )
+                # Exponential regression
+                for (field in c('beta')) {
+                    fit <- lm(
+                        formula = log(get(field) + 1e-6) ~ data,
+                        data = drop_na(tbl_data)
+                    )
+                    tbl_data[i - 1, field] <-
+                        exp(predict(fit, tbl_data$data[i - 1])) - 1e-6
+                }
+                # The last value is the proxy for the recovery rate
+                tbl_data[i - 1, 'gamma'] <- tbl_data[i - 2, 'gamma']
+                # Fixed values for the mortality rate
+                tbl_data[i - 1, 'rho'] <- 0.2
+                # Compute new fields
+                tbl_data$X[i] <-
+                    as.integer((1 + tbl_data$beta[i - 1] - tbl_data$gamma[i - 1]) * tbl_data$X[i - 1])
+                tbl_data$R[i] <-
+                    as.integer(tbl_data$R[i - 1] + tbl_data$gamma[i - 1] * (1 - tbl_data$rho[i - 1]) * tbl_data$X[i - 1])
+                tbl_data$D[i] <-
+                    as.integer(tbl_data$D[i - 1] + tbl_data$gamma[i - 1] * tbl_data$rho[i - 1] * tbl_data$X[i - 1])
+            }
+            tbl_data %>%
+                mutate(
+                    R0 = beta / gamma,
+                    total = X + R + D,
+                    increment = c(0, diff(total))
+                )
+        },
+
+        #' @description
         #' This is to predict the behavior on the following days.
         forecast = function(
             region = 'ITA',
@@ -408,6 +475,87 @@ Covid <- R6::R6Class(
                     )
                 )
             hc
+        },
+
+        #' @description
+        #' This plots a linechart of the forecast.
+        plot_sir = function(
+            region = 'ITA',
+            fit_date = max(self$dates()),
+            end_date = as.Date('2020-04-30')
+        ) {
+            hc <-
+                highchart() %>%
+                hc_chart(zoomType = 'x') %>%
+                hc_subtitle(text = 'Click and drag in the plot area to zoom in') %>%
+                hc_xAxis(
+                    type = 'datetime',
+                    plotBands = list(
+                        from = datetime_to_timestamp(as.Date('2020-02-24')),
+                        to = datetime_to_timestamp(fit_date),
+                        color = 'rgba(68, 170, 213, .1)'
+                    )
+                )
+            tbl_forecast <-
+                try(
+                    self$sir(region, fit_date, end_date) %>%
+                        dplyr::mutate(data = datetime_to_timestamp(data)),
+                    silent = TRUE
+                )
+            if (class(tbl_forecast)[1] != 'try-error') {
+                hc %<>%
+                    hc_add_series(
+                        data = tbl_forecast %>%
+                            dplyr::select(data, X) %>%
+                            list_parse2(),
+                        name = 'Active Cases',
+                        zIndex = 1,
+                        marker = list(
+                            fillColor = 'white',
+                            lineWidth = 1,
+                            lineColor = private$palette[1]
+                        )
+                    ) %>%
+                    hc_add_series(
+                        data = tbl_forecast %>%
+                            dplyr::select(data, total) %>%
+                            list_parse2(),
+                        name = 'Total Cases',
+                        zIndex = 1,
+                        marker = list(
+                            fillColor = 'white',
+                            lineWidth = 1,
+                            lineColor = private$palette[2]
+                        )
+                    ) %>%
+                    hc_add_series(
+                        data = tbl_forecast %>%
+                            dplyr::select(data, R) %>%
+                            list_parse2(),
+                        name = 'Recovered',
+                        zIndex = 1,
+                        marker = list(
+                            fillColor = 'white',
+                            lineWidth = 1,
+                            lineColor = private$palette[3]
+                        )
+                    ) %>%
+                    hc_add_series(
+                        data = tbl_forecast %>%
+                            dplyr::select(data, D) %>%
+                            list_parse2(),
+                        name = 'Deaths',
+                        zIndex = 1,
+                        marker = list(
+                            fillColor = 'white',
+                            lineWidth = 1,
+                            lineColor = private$palette[4]
+                        )
+                    )
+                hc
+            } else {
+                return()
+            }
         }
 
     ),
