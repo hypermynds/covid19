@@ -21,20 +21,18 @@ require(magrittr)
 covid <- Covid$new()$update()
 ```
 
-Summary {.sidebar data-width=275}
+Summary {.sidebar data-width=250}
 =======================================================================
 
-[![](hm_logo.png){.class width=20% height=20%}](https://www.hypermynds.com)
+[![](hm_logo.png){.mobile style="margin-top:7.5px;width:7.5vh;"}](https://www.hypermynds.com)
 
 This dashboard represents the outbreak and spread of COVID-19 in **Italy**.
 
-Forecasts are calculated adopting a simple exponential model under the
-assumption of **no containment measures**.
+Forecasts are calculated fitting a **time-dependent SIR model**, where model
+parameters are updated on a daily basis according to the last available data.
 
-Based on data of the last 10 days, the estimated growing factor is equal to
-**`r covid$grow_rate('ITA') %>% round(1) %>% format(decimal.mark = ',')`%**,
-corresponding to a doubling time of
-**`r log(2) %>% divide_by(1e-2 * covid$grow_rate('ITA')) %>% round(1) %>% format(decimal.mark = ',')` days**.
+Please, note that forecasts on some regions with few cases could be
+**not reliable**.
 
 ```{r}
 selectInput(
@@ -44,20 +42,13 @@ selectInput(
   multiple = FALSE,
   selectize = FALSE
 )
-selectInput(
-  inputId = 'log-scale',
-  label = 'Please select a scale:',
-  choices = list('Linear' = FALSE, 'Logarithmic' = TRUE),
-  multiple = FALSE,
-  selectize = FALSE
-)
 ```
 
 ----
 
 This dashboard is built from data provided by the Civil Protection department
-of the Italian Government through the [COVID-19](https://github.com/pcm-dpc/COVID-19)
-repository.
+of the Italian Government through the
+[COVID-19](https://github.com/pcm-dpc/COVID-19) repository.
 
 The excellent [Highcharts](https://www.highcharts.com) JS library is being used
 for the charts.
@@ -137,6 +128,13 @@ fillCol(
       ),
       multiple = FALSE,
       selectize = FALSE
+    ),
+    selectInput(
+      inputId = 'log-scale',
+      label = 'Please select a scale:',
+      choices = list('Linear' = FALSE, 'Logarithmic' = TRUE),
+      multiple = FALSE,
+      selectize = FALSE
     )
   ),
   renderHighchart({
@@ -149,23 +147,13 @@ fillCol(
 )
 ```
 
-### Forecast Analysis
+### Time-dependent SIR model
 
 ```{r}
 fillCol(
   height = 600,
   flex = c(NA, 1), 
   inputPanel(
-    selectInput(
-      inputId = 'fit-series',
-      label = 'Please select a variable:',
-      choices = list(
-        'Total Cases' = 'totale_casi',
-        'Deaths' = 'deceduti'
-      ),
-      multiple = FALSE,
-      selectize = FALSE
-    ),
     dateInput(
       inputId = 'fit-date',
       label = 'Please select a fit date:',
@@ -178,11 +166,9 @@ fillCol(
     )
   ),
   renderHighchart({
-    covid$plot_fore2(
+    covid$plot_sir(
       region = input[['region']],
-      series = input[['fit-series']],
-      fit_date = input[['fit-date']],
-      log = input[['log-scale']]
+      fit_date = input[['fit-date']]
     )
   })
 )
