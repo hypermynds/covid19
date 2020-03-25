@@ -106,20 +106,20 @@ Covid <- R6::R6Class(
         sir = function(
             region = 'ITA',
             fit_date = max(self$dates()),
-            end_date = as.Date('2020-04-30')
+            end_date = as.Date('2020-05-31')
         ) {
             tbl_data <-
                 Covid$new()$get(region) %>%
                 # mutate(R = deceduti + dimessi_guariti) %>%
-                select(
+                dplyr::select(
                     data,
                     X = totale_attualmente_positivi,
                     R = dimessi_guariti,
                     D = deceduti
                 ) %>%
-                filter(data <= fit_date) %>%
-                bind_rows(
-                    tibble(
+                dplyr::filter(data <= fit_date) %>%
+                dplyr::bind_rows(
+                    dplyr::tibble(
                         data = seq(fit_date + 1, end_date, by = '1 day'),
                         X = as.numeric(NA),
                         R = as.numeric(NA),
@@ -130,7 +130,7 @@ Covid <- R6::R6Class(
             for (i in idx) {
                 # Update fields
                 tbl_data %<>%
-                    mutate(
+                    dplyr::mutate(
                         X_1 = lead(X),
                         R_1 = lead(R),
                         D_1 = lead(D),
@@ -142,15 +142,20 @@ Covid <- R6::R6Class(
                 for (field in c('beta')) {
                     fit <- lm(
                         formula = log(get(field) + 1e-6) ~ data,
-                        data = drop_na(tbl_data)
+                        data = tidyr::drop_na(tbl_data)
                     )
                     tbl_data[i - 1, field] <-
                         exp(predict(fit, tbl_data$data[i - 1])) - 1e-6
                 }
-                # The last value is the proxy for the recovery rate
-                tbl_data[i - 1, 'gamma'] <- tbl_data[i - 2, 'gamma']
-                # Fixed values for the mortality rate
-                tbl_data[i - 1, 'rho'] <- 0.2
+                # The mean of the last values is the proxy for the recovery rate
+                tbl_data[i - 1, 'gamma'] <-
+                    tbl_data %>%
+                    dplyr::slice((i - 6):(i - 2)) %>%
+                    dplyr::pull(gamma) %>%
+                    mean()
+                # Decreasing step function for the mortality rate
+                fix_rate <- ifelse(i < 60, 0.20, 0.10)
+                tbl_data[i - 1, 'rho'] <- min(fix_rate, dplyr::pull(tbl_data[i - 2, 'rho']))
                 # Compute new fields
                 tbl_data$X[i] <-
                     as.integer((1 + tbl_data$beta[i - 1] - tbl_data$gamma[i - 1]) * tbl_data$X[i - 1])
@@ -160,104 +165,11 @@ Covid <- R6::R6Class(
                     as.integer(tbl_data$D[i - 1] + tbl_data$gamma[i - 1] * tbl_data$rho[i - 1] * tbl_data$X[i - 1])
             }
             tbl_data %>%
-                mutate(
+                dplyr::mutate(
                     R0 = beta / gamma,
                     total = X + R + D,
                     increment = c(0, diff(total))
                 )
-        },
-
-        #' @description
-        #' This is to predict the behavior on the following days.
-        forecast = function(
-            region = 'ITA',
-            series = 'totale_casi',
-            fit_date = max(self$dates()),
-            n = 5L
-        ) {
-            tbl_data <-
-                self$get(region) %>%
-                dplyr::filter(
-                    get(series) != 0,
-                    data <= fit_date
-                )
-            k <-
-                sapply(
-                    7:nrow(tbl_data),
-                    function(x)
-                        lm(
-                            formula = log(get(series)) ~ data,
-                            data = tbl_data %>% tail(x)
-                        ) %>%
-                        summary() %>%
-                        magrittr::extract2('adj.r.squared') %>%
-                        magrittr::set_names(x)
-                ) %>%
-                which.max() %>%
-                names() %>%
-                as.integer()
-            fit <-
-                try(
-                    lm(
-                        formula = log(get(series)) ~ data,
-                        data = tbl_data %>% tail(k)
-                    ),
-                    silent = TRUE
-                )
-            if (class(fit)[1] == 'try-error')
-                return()
-            end_date <-
-                max(
-                    max(self$dates()),
-                    fit_date + n
-                )
-            new_dates <-
-                seq(
-                    fit_date + 1,
-                    end_date,
-                    by = '1 day'
-                )
-            exp(predict(fit, new_dates, interval = 'prediction', level = 0.99)) %>%
-                dplyr::as_tibble() %>%
-                dplyr::mutate(data = new_dates) %>%
-                dplyr::select(data, everything()) %>%
-                dplyr::bind_rows(
-                    self$get(region) %>%
-                        dplyr::filter(data <= fit_date) %>%
-                        dplyr::select(data, series) %>%
-                        dplyr::rename(fit = series) %>%
-                        dplyr::mutate(lwr = fit, upr = fit)
-                ) %>%
-                dplyr::arrange(data) %>%
-                dplyr::mutate_if(is.double, as.integer) %>%
-                dplyr::mutate(data = lubridate::as_date(data))
-        },
-
-        #' @description
-        #' This is used to estimate the growing factor.
-        grow_rate = function(region = 'ITA') {
-            k <-
-                sapply(
-                    7:nrow(self$get(region)),
-                    function(x)
-                        lm(
-                            formula = log(totale_casi) ~ data,
-                            data = self$get(region) %>% tail(x)
-                        ) %>%
-                        summary() %>%
-                        magrittr::extract2('adj.r.squared') %>%
-                        magrittr::set_names(x)
-                ) %>%
-                which.max() %>%
-                names() %>%
-                as.integer()
-            lm(
-                formula = log(totale_casi) ~ data,
-                data = self$get(region) %>% tail(k)
-            ) %>%
-                magrittr::use_series(coefficients) %>%
-                magrittr::extract2('data') %>%
-                magrittr::multiply_by(100)
         },
 
         #' @description
@@ -348,141 +260,10 @@ Covid <- R6::R6Class(
 
         #' @description
         #' This plots a linechart of the forecast.
-        plot_fore = function(region = 'ITA', series = c('totale_casi', 'deceduti'), log = FALSE) {
-            labels <- list(
-                'totale_casi' = 'Total Cases',
-                'deceduti' = 'Deaths'
-            )
-            hc <-
-                highchart() %>%
-                hc_chart(zoomType = 'x') %>%
-                hc_subtitle(text = 'Click and drag in the plot area to zoom in') %>%
-                hc_xAxis(type = 'datetime')
-            if (log) {
-                hc %<>%
-                    hc_yAxis(
-                        type = 'logarithmic'
-                    )
-            }
-            for (field in series) {
-                tbl_forecast <-
-                    try(
-                        self$forecast(region, field) %>%
-                            dplyr::mutate(data = datetime_to_timestamp(data)),
-                        silent = TRUE
-                    )
-                if (class(tbl_forecast)[1] == 'try-error')
-                    next
-                line_color <- private$palette[which(series == field)]
-                hc %<>%
-                    hc_add_series(
-                        data = tbl_forecast %>%
-                            dplyr::select(data, fit) %>%
-                            list_parse2(),
-                        name = labels[[field]],
-                        zIndex = 1,
-                        marker = list(
-                            fillColor = 'white',
-                            lineWidth = 1,
-                            lineColor = line_color
-                        )
-                    ) %>%
-                    # Terapia intensiva
-                    hc_add_series(
-                        data = tbl_forecast %>%
-                            dplyr::select(data, lwr, upr) %>%
-                            list_parse2(),
-                        name = 'Range',
-                        type = 'arearange',
-                        lineWidth = 0,
-                        linkedTo = ':previous',
-                        color = line_color,
-                        fillOpacity = 0.3,
-                        zIndex = 0,
-                        marker = list(enabled = FALSE)
-                    )
-            }
-            hc
-        },
-
-        #' @description
-        #' This plots a linechart of the forecast.
-        plot_fore2 = function(
-            region = 'ITA',
-            series = 'totale_casi',
-            fit_date = max(self$dates()),
-            log = FALSE
-        ) {
-            hc <-
-                highchart() %>%
-                hc_chart(zoomType = 'x') %>%
-                hc_subtitle(text = 'Click and drag in the plot area to zoom in') %>%
-                hc_xAxis(type = 'datetime')
-            if (log) {
-                hc %<>%
-                    hc_yAxis(
-                        type = 'logarithmic'
-                    )
-            }
-            tbl_forecast <-
-                try(
-                    self$forecast(region, series, fit_date) %>%
-                        dplyr::filter(data >= fit_date) %>%
-                        dplyr::mutate(data = datetime_to_timestamp(data)),
-                    silent = TRUE
-                )
-            if (class(tbl_forecast)[1] != 'try-error') {
-                hc %<>%
-                    hc_add_series(
-                        data = tbl_forecast %>%
-                            dplyr::select(data, fit) %>%
-                            list_parse2(),
-                        name = 'Forecast',
-                        zIndex = 1,
-                        marker = list(
-                            fillColor = 'white',
-                            lineWidth = 1,
-                            lineColor = private$palette[1]
-                        )
-                    ) %>%
-                    hc_add_series(
-                        data = tbl_forecast %>%
-                            dplyr::select(data, lwr, upr) %>%
-                            list_parse2(),
-                        name = 'Range',
-                        type = 'arearange',
-                        lineWidth = 0,
-                        linkedTo = ':previous',
-                        color = private$palette[1],
-                        fillOpacity = 0.3,
-                        zIndex = 0,
-                        marker = list(enabled = FALSE)
-                    )
-            }
-            tbl_actual <- self$get(region) %>%
-                dplyr::mutate(data = datetime_to_timestamp(data))
-            hc %<>%
-                hc_add_series(
-                    data = tbl_actual %>%
-                        dplyr::select(data, series) %>%
-                        list_parse2(),
-                    name = 'Actual',
-                    zIndex = 1,
-                    marker = list(
-                        fillColor = 'white',
-                        lineWidth = 0.8,
-                        lineColor = private$palette[2]
-                    )
-                )
-            hc
-        },
-
-        #' @description
-        #' This plots a linechart of the forecast.
         plot_sir = function(
             region = 'ITA',
             fit_date = max(self$dates()),
-            end_date = as.Date('2020-04-30')
+            end_date = as.Date('2020-05-31')
         ) {
             hc <-
                 highchart() %>%
@@ -509,11 +290,10 @@ Covid <- R6::R6Class(
                             dplyr::select(data, X) %>%
                             list_parse2(),
                         name = 'Active Cases',
-                        zIndex = 1,
                         marker = list(
                             fillColor = 'white',
                             lineWidth = 1,
-                            lineColor = private$palette[1]
+                            lineColor = JS("Highcharts.getOptions().colors[0]")
                         )
                     ) %>%
                     hc_add_series(
@@ -521,11 +301,10 @@ Covid <- R6::R6Class(
                             dplyr::select(data, total) %>%
                             list_parse2(),
                         name = 'Total Cases',
-                        zIndex = 1,
                         marker = list(
                             fillColor = 'white',
                             lineWidth = 1,
-                            lineColor = private$palette[2]
+                            lineColor = JS("Highcharts.getOptions().colors[1]")
                         )
                     ) %>%
                     hc_add_series(
@@ -533,11 +312,10 @@ Covid <- R6::R6Class(
                             dplyr::select(data, R) %>%
                             list_parse2(),
                         name = 'Recovered',
-                        zIndex = 1,
                         marker = list(
                             fillColor = 'white',
                             lineWidth = 1,
-                            lineColor = private$palette[3]
+                            lineColor = JS("Highcharts.getOptions().colors[2]")
                         )
                     ) %>%
                     hc_add_series(
@@ -545,11 +323,10 @@ Covid <- R6::R6Class(
                             dplyr::select(data, D) %>%
                             list_parse2(),
                         name = 'Deaths',
-                        zIndex = 1,
                         marker = list(
                             fillColor = 'white',
                             lineWidth = 1,
-                            lineColor = private$palette[4]
+                            lineColor = JS("Highcharts.getOptions().colors[3]")
                         )
                     )
                 hc
@@ -564,8 +341,6 @@ Covid <- R6::R6Class(
     private = list(
 
         tab = NULL,
-
-        palette = c("#7cb5ec", "#434348", "#90ed7d", "#f7a35c", "#8085e9", "#f15c80", "#e4d354", "#2b908f", "#f45b5b", "#91e8e1"),
         repo = 'https://raw.githubusercontent.com/pcm-dpc/COVID-19/master/dati-regioni/dpc-covid19-ita-regioni.csv'
 
     )

@@ -2,8 +2,8 @@
 
 <!-- badges: start -->
 [![Build](https://img.shields.io/badge/build-passing-success.svg)](#)
-[![Version](https://img.shields.io/badge/version-v1.3.1-blue.svg)](#)
-[![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental)
+[![Version](https://img.shields.io/badge/version-v1.4.0-blue.svg)](#)
+[![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-stable-green.svg)](https://www.tidyverse.org/lifecycle/#stable)
 <!-- badges: end -->
 
 The R package **covid19** is used to retrieve, analyse and represent

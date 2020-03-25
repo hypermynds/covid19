@@ -16,12 +16,10 @@ COVID19 outbreak and spreading.
 \item \href{#method-regions}{\code{Covid$regions()}}
 \item \href{#method-dates}{\code{Covid$dates()}}
 \item \href{#method-update}{\code{Covid$update()}}
-\item \href{#method-forecast}{\code{Covid$forecast()}}
-\item \href{#method-grow_rate}{\code{Covid$grow_rate()}}
+\item \href{#method-sir}{\code{Covid$sir()}}
 \item \href{#method-table}{\code{Covid$table()}}
 \item \href{#method-plot_hist}{\code{Covid$plot_hist()}}
-\item \href{#method-plot_fore}{\code{Covid$plot_fore()}}
-\item \href{#method-plot_fore2}{\code{Covid$plot_fore2()}}
+\item \href{#method-plot_sir}{\code{Covid$plot_sir()}}
 \item \href{#method-clone}{\code{Covid$clone()}}
 }
 }
@@ -88,15 +86,15 @@ This updates the inner table downloading data from the remote repo.
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-forecast"></a>}}
-\subsection{Method \code{forecast()}}{
-This is to predict the behavior on the following days.
+\if{html}{\out{<a id="method-sir"></a>}}
+\subsection{Method \code{sir()}}{
+This function implements a forecast based on a time-dependent SIR
+model.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Covid$forecast(
+\if{html}{\out{<div class="r">}}\preformatted{Covid$sir(
   region = "ITA",
-  series = "totale_casi",
   fit_date = max(self$dates()),
-  n = 5L
+  end_date = as.Date("2020-05-31")
 )}\if{html}{\out{</div>}}
 }
 
@@ -106,29 +104,8 @@ This is to predict the behavior on the following days.
 \item{\code{region}}{is a string; the name of the region to be returned.
 Use "ITA" to return the national aggregated data.}
 
-\item{\code{series}}{is a string; the name of the field that has to be considered.}
-
 \item{\code{fit_date}}{is a date; it is the end of the historical time series used
 to produce the forecasts.}
-
-\item{\code{n}}{is an integer; the number of days to forecast.}
-}
-\if{html}{\out{</div>}}
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-grow_rate"></a>}}
-\subsection{Method \code{grow_rate()}}{
-This is used to estimate the growing factor.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Covid$grow_rate(region = "ITA")}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{region}}{is a string; the name of the region to be returned.
-Use "ITA" to return the national aggregated data.}
 }
 \if{html}{\out{</div>}}
 }
@@ -174,41 +151,14 @@ previous day is shown.}
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-plot_fore"></a>}}
-\subsection{Method \code{plot_fore()}}{
+\if{html}{\out{<a id="method-plot_sir"></a>}}
+\subsection{Method \code{plot_sir()}}{
 This plots a linechart of the forecast.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Covid$plot_fore(
+\if{html}{\out{<div class="r">}}\preformatted{Covid$plot_sir(
   region = "ITA",
-  series = c("totale_casi", "deceduti"),
-  log = FALSE
-)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{region}}{is a string; the name of the region to be returned.
-Use "ITA" to return the national aggregated data.}
-
-\item{\code{series}}{is a string; the name of the field that has to be considered.}
-
-\item{\code{log}}{is a boolean; if \code{TRUE}, a logarithmic scale is applied to y
-axis in plots.}
-}
-\if{html}{\out{</div>}}
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-plot_fore2"></a>}}
-\subsection{Method \code{plot_fore2()}}{
-This plots a linechart of the forecast.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Covid$plot_fore2(
-  region = "ITA",
-  series = "totale_casi",
   fit_date = max(self$dates()),
-  log = FALSE
+  end_date = as.Date("2020-05-31")
 )}\if{html}{\out{</div>}}
 }
 
@@ -217,14 +167,9 @@ This plots a linechart of the forecast.
 \describe{
 \item{\code{region}}{is a string; the name of the region to be returned.
 Use "ITA" to return the national aggregated data.}
-
-\item{\code{series}}{is a string; the name of the field that has to be considered.}
 
 \item{\code{fit_date}}{is a date; it is the end of the historical time series used
 to produce the forecasts.}
-
-\item{\code{log}}{is a boolean; if \code{TRUE}, a logarithmic scale is applied to y
-axis in plots.}
 }
 \if{html}{\out{</div>}}
 }
