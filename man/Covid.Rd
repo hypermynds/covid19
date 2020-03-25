@@ -106,6 +106,8 @@ Use "ITA" to return the national aggregated data.}
 
 \item{\code{fit_date}}{is a date; it is the end of the historical time series used
 to produce the forecasts.}
+
+\item{\code{end_date}}{is a date; it is the end of the forecast period.}
 }
 \if{html}{\out{</div>}}
 }
@@ -170,6 +172,8 @@ Use "ITA" to return the national aggregated data.}
 
 \item{\code{fit_date}}{is a date; it is the end of the historical time series used
 to produce the forecasts.}
+
+\item{\code{end_date}}{is a date; it is the end of the forecast period.}
 }
 \if{html}{\out{</div>}}
 }

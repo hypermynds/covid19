@@ -9,7 +9,7 @@
 #' @param series is a string; the name of the field that has to be considered.
 #' @param fit_date is a date; it is the end of the historical time series used
 #' to produce the forecasts.
-#' @param n is an integer; the number of days to forecast.
+#' @param end_date is a date; it is the end of the forecast period.
 #' @param log is a boolean; if \code{TRUE}, a logarithmic scale is applied to y
 #' axis in plots.
 #'
@@ -93,7 +93,7 @@ Covid <- R6::R6Class(
                             TRUE ~ denominazione_regione
                         )
                 ) %>%
-                dplyr::select(-stato, -codice_regione, -lat, -long) %>%
+                dplyr::select(-stato, -codice_regione, -lat, -long, -note_it, -note_en) %>%
                 dplyr::group_by(data, denominazione_regione) %>%
                 dplyr::summarise_all(sum) %>%
                 dplyr::ungroup()

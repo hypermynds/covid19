@@ -1,6 +1,6 @@
 Package: covid19
 Title: A COVID-19 data analyser
-Version: 1.4.0
+Version: 1.4.1
 Date: 25-03-2020
 Authors@R: c(
     person("Michele Stefano", "Altieri", email = "msa@hypermynds.com", role = c("aut", "cre")))
