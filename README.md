@@ -12,8 +12,12 @@ Italian data on the COVID19 outbreak and spreading.
 It uses official data issued by the Italian Government through the
 [COVID-19](https://github.com/pcm-dpc/COVID-19) repository.
 
-Data are represented using [flexdashboard](https://rmarkdown.rstudio.com/flexdashboard/),
-an easy and interactive dashboard tool for R.
+Data are represented using
+[flexdashboard](https://rmarkdown.rstudio.com/flexdashboard/), an easy and
+interactive dashboard tool for R.
+
+The package **covid19** implements a time-dependent SIR model to predict the
+epidemic evolution.
 
 ## Dashboard
 
@@ -42,23 +46,22 @@ A new `Codiv` object is initialized by:
 covid <- Covid$new()
 ```
 
-Launch the `update` method in order to download the last available data from
-the remote repository:
-
-```r
-covid$update()
-```
-
-Downloaded data can be displayed into a `tibble`:
+Historical data can be displayed into a `tibble` by:
 
 ```r
 covid$get()
 ```
 
+Epidemic projections can be calculated via:
+
+```r
+covid$sir()
+```
+
 ## Documentation
 
 The `Covid` R6 class is documented by Roxygen. To have further information on
-all the available methods:
+all the available methods take a look at the manual:
 
 ```r
 ?covid19::Covid
