@@ -154,8 +154,12 @@ Covid <- R6::R6Class(
                     dplyr::pull(gamma) %>%
                     mean()
                 # Decreasing step function for the mortality rate
-                fix_rate <- ifelse(i < 60, 0.20, 0.10)
-                tbl_data[i - 1, 'rho'] <- min(fix_rate, dplyr::pull(tbl_data[i - 2, 'rho']))
+                fix_rate <- ifelse(
+                    i < 50,
+                    tbl_data[(i - 5):(i - 2), 'rho'] %>% dplyr::pull() %>% mean(),
+                    ifelse(i < 70, 0.20, 0.10)
+                )
+                tbl_data[i - 1, 'rho'] <- fix_rate
                 # Compute new fields
                 tbl_data$X[i] <-
                     as.integer((1 + tbl_data$beta[i - 1] - tbl_data$gamma[i - 1]) * tbl_data$X[i - 1])
