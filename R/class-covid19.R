@@ -68,7 +68,7 @@ Covid <- R6::R6Class(
         #' The list of dates available to fit a regression model.
         dates = function() {
             self$get('ITA') %>%
-                dplyr::filter(data >= '2020-03-01') %>%
+                dplyr::filter(data > '2020-03-01') %>%
                 dplyr::distinct(data) %>%
                 dplyr::pull()
         },

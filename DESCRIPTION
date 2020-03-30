@@ -1,7 +1,7 @@
 Package: covid19
 Title: A COVID-19 data analyser
-Version: 1.4.2
-Date: 28-03-2020
+Version: 1.4.3
+Date: 30-03-2020
 Authors@R: c(
     person("Michele Stefano", "Altieri", email = "msa@hypermynds.com", role = c("aut", "cre")))
 Description: The R package covid19 is used to retrieve, analyse and represent
