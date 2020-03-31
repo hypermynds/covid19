@@ -113,7 +113,7 @@ Covid <- R6::R6Class(
                 # mutate(R = deceduti + dimessi_guariti) %>%
                 dplyr::select(
                     data,
-                    X = totale_attualmente_positivi,
+                    X = totale_positivi,
                     R = dimessi_guariti,
                     D = deceduti
                 ) %>%
