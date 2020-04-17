@@ -267,7 +267,7 @@ Covid <- R6::R6Class(
         plot_sir = function(
             region = 'ITA',
             fit_date = max(self$dates()),
-            end_date = as.Date('2020-05-31')
+            end_date = as.Date('2020-06-30')
         ) {
             hc <-
                 highchart() %>%
@@ -331,6 +331,104 @@ Covid <- R6::R6Class(
                             fillColor = 'white',
                             lineWidth = 1,
                             lineColor = JS("Highcharts.getOptions().colors[3]")
+                        )
+                    )
+                hc
+            } else {
+                return()
+            }
+        },
+
+        #' @description
+        #' This plots a linechart of the model parameters.
+        plot_param = function(
+            region = 'ITA',
+            fit_date = max(self$dates())
+        ) {
+            hc <-
+                highchart() %>%
+                hc_chart(zoomType = 'x') %>%
+                hc_subtitle(text = 'Click and drag in the plot area to zoom in') %>%
+                hc_xAxis(type = 'datetime') %>%
+                hc_yAxis_multiples(
+                    list(
+                        title = list(text = 'Rates')
+                    ),
+                    list(
+                        title = list(
+                            text = 'R0',
+                            style = list(color = JS("Highcharts.getOptions().colors[0]"))
+                        ),
+                        labels = list(
+                            style = list(color = JS("Highcharts.getOptions().colors[0]"))
+                        ),
+                        opposite = TRUE
+                    )
+                )
+            tbl_forecast <-
+                try(
+                    self$sir(region, fit_date, Sys.Date()) %>%
+                        dplyr::mutate_at(vars(beta, gamma, rho, R0), round, digits = 3) %>%
+                        dplyr::mutate(data = datetime_to_timestamp(data)),
+                    silent = TRUE
+                )
+            if (class(tbl_forecast)[1] != 'try-error') {
+                hc %<>%
+                    hc_add_series(
+                        data = tbl_forecast %>%
+                            dplyr::select(data, R0) %>%
+                            list_parse2(),
+                        name = 'Reproduction number',
+                        color = JS("Highcharts.getOptions().colors[0]"),
+                        yAxis = 1,
+                        marker = list(
+                            fillColor = 'white',
+                            symbol = 'circle',
+                            radius = 3,
+                            lineWidth = 1,
+                            lineColor = JS("Highcharts.getOptions().colors[0]")
+                        )
+                    ) %>%
+                    hc_add_series(
+                        data = tbl_forecast %>%
+                            dplyr::select(data, beta) %>%
+                            list_parse2(),
+                        name = 'Infection rate',
+                        color = JS("Highcharts.getOptions().colors[3]"),
+                        marker = list(
+                            fillColor = 'white',
+                            symbol = 'circle',
+                            radius = 3,
+                            lineWidth = 1,
+                            lineColor = JS("Highcharts.getOptions().colors[3]")
+                        )
+                    ) %>%
+                    hc_add_series(
+                        data = tbl_forecast %>%
+                            dplyr::select(data, gamma) %>%
+                            list_parse2(),
+                        name = 'Recovery rate',
+                        color = JS("Highcharts.getOptions().colors[2]"),
+                        marker = list(
+                            fillColor = 'white',
+                            symbol = 'circle',
+                            radius = 3,
+                            lineWidth = 1,
+                            lineColor = JS("Highcharts.getOptions().colors[2]")
+                        )
+                    ) %>%
+                    hc_add_series(
+                        data = tbl_forecast %>%
+                            dplyr::select(data, rho) %>%
+                            list_parse2(),
+                        name = 'Mortality Rate',
+                        color = JS("Highcharts.getOptions().colors[1]"),
+                        marker = list(
+                            fillColor = 'white',
+                            symbol = 'circle',
+                            radius = 3,
+                            lineWidth = 1,
+                            lineColor = JS("Highcharts.getOptions().colors[1]")
                         )
                     )
                 hc

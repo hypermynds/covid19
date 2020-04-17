@@ -1,3 +1,4 @@
+require(covid19)
 require(dplyr)
 require(lubridate)
 

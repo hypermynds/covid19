@@ -128,7 +128,7 @@ tbl_data %>%
         abline(v = Sys.Date(), lty = 3)
     })
 tbl_data %>%
-    dplyr::filter(data <= Sys.Date()) %>%
+    # dplyr::filter(data <= Sys.Date()) %>%
     with({
         plot(data, beta, type = 'b', col = 'red', ylab = '', ylim = c(0, 0.8));
         lines(data, gamma, type = 'b', col = 'blue');

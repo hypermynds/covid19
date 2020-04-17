@@ -20,11 +20,13 @@ COVID19 outbreak and spreading.
 \item \href{#method-table}{\code{Covid$table()}}
 \item \href{#method-plot_hist}{\code{Covid$plot_hist()}}
 \item \href{#method-plot_sir}{\code{Covid$plot_sir()}}
+\item \href{#method-plot_param}{\code{Covid$plot_param()}}
 \item \href{#method-clone}{\code{Covid$clone()}}
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-new"></a>}}
+\if{latex}{\out{\hypertarget{method-new}{}}}
 \subsection{Method \code{new()}}{
 Create a new Covid object.
 \subsection{Usage}{
@@ -34,6 +36,7 @@ Create a new Covid object.
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-print"></a>}}
+\if{latex}{\out{\hypertarget{method-print}{}}}
 \subsection{Method \code{print()}}{
 This is to print the object type.
 \subsection{Usage}{
@@ -43,6 +46,7 @@ This is to print the object type.
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-get"></a>}}
+\if{latex}{\out{\hypertarget{method-get}{}}}
 \subsection{Method \code{get()}}{
 This returns the table with raw data.
 \subsection{Usage}{
@@ -60,6 +64,7 @@ Use "ITA" to return the national aggregated data.}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-regions"></a>}}
+\if{latex}{\out{\hypertarget{method-regions}{}}}
 \subsection{Method \code{regions()}}{
 The list of all available regions.
 \subsection{Usage}{
@@ -69,6 +74,7 @@ The list of all available regions.
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-dates"></a>}}
+\if{latex}{\out{\hypertarget{method-dates}{}}}
 \subsection{Method \code{dates()}}{
 The list of dates available to fit a regression model.
 \subsection{Usage}{
@@ -78,6 +84,7 @@ The list of dates available to fit a regression model.
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-update"></a>}}
+\if{latex}{\out{\hypertarget{method-update}{}}}
 \subsection{Method \code{update()}}{
 This updates the inner table downloading data from the remote repo.
 \subsection{Usage}{
@@ -87,6 +94,7 @@ This updates the inner table downloading data from the remote repo.
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-sir"></a>}}
+\if{latex}{\out{\hypertarget{method-sir}{}}}
 \subsection{Method \code{sir()}}{
 This function implements a forecast based on a time-dependent SIR
 model.
@@ -114,6 +122,7 @@ to produce the forecasts.}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-table"></a>}}
+\if{latex}{\out{\hypertarget{method-table}{}}}
 \subsection{Method \code{table()}}{
 This is used to export a plottable table
 \subsection{Usage}{
@@ -131,6 +140,7 @@ Use "ITA" to return the national aggregated data.}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-plot_hist"></a>}}
+\if{latex}{\out{\hypertarget{method-plot_hist}{}}}
 \subsection{Method \code{plot_hist()}}{
 This plots a barchart of the summary.
 \subsection{Usage}{
@@ -154,13 +164,14 @@ previous day is shown.}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-plot_sir"></a>}}
+\if{latex}{\out{\hypertarget{method-plot_sir}{}}}
 \subsection{Method \code{plot_sir()}}{
 This plots a linechart of the forecast.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Covid$plot_sir(
   region = "ITA",
   fit_date = max(self$dates()),
-  end_date = as.Date("2020-05-31")
+  end_date = as.Date("2020-06-30")
 )}\if{html}{\out{</div>}}
 }
 
@@ -179,7 +190,29 @@ to produce the forecasts.}
 }
 }
 \if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-plot_param"></a>}}
+\if{latex}{\out{\hypertarget{method-plot_param}{}}}
+\subsection{Method \code{plot_param()}}{
+This plots a linechart of the model parameters.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Covid$plot_param(region = "ITA", fit_date = max(self$dates()))}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{region}}{is a string; the name of the region to be returned.
+Use "ITA" to return the national aggregated data.}
+
+\item{\code{fit_date}}{is a date; it is the end of the historical time series used
+to produce the forecasts.}
+}
+\if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-clone"></a>}}
+\if{latex}{\out{\hypertarget{method-clone}{}}}
 \subsection{Method \code{clone()}}{
 The objects of this class are cloneable with this method.
 \subsection{Usage}{

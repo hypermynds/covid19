@@ -42,6 +42,16 @@ selectInput(
   multiple = FALSE,
   selectize = FALSE
 )
+selectInput(
+  inputId = 'is-delta',
+  label = 'Please select a metric:',
+  choices = list(
+    'Cumulative' = FALSE,
+    'New Cases Only' = TRUE
+  ),
+  multiple = FALSE,
+  selectize = FALSE
+)
 ```
 
 ----
@@ -63,14 +73,26 @@ Dashboard
 Row
 -----------------------------------------------------------------------
 
+```{r, echo = FALSE}
+tbl_covid <- reactive({
+  covid$get(input[['region']])
+})
+```
+
 ### Total Cases {.value-box}
 
 ```{r}
 renderValueBox({
-  total_cases <- covid$get(input[['region']]) %>%
-      tail(1) %>% 
-      pull(totale_casi) %>%
-      format(big.mark = '.', decimal.mark = ',')
+  total_cases <-
+    tbl_covid() %>%
+    tail(1)
+  if (input[['is-delta']]) {
+    total_cases %<>% pull(nuovi_positivi)
+  } else {
+    total_cases %<>% pull(totale_casi)
+  }
+  total_cases %<>%
+    format(big.mark = '.', decimal.mark = ',')
   valueBox(
     value = total_cases,
     icon = "fa-users"
@@ -82,10 +104,15 @@ renderValueBox({
 
 ```{r}
 renderValueBox({
-  recovered <- covid$get(input[['region']]) %>%
-      tail(1) %>% 
-      pull(dimessi_guariti) %>%
-      format(big.mark = '.', decimal.mark = ',')
+  recovered <-
+    tbl_covid() %>%
+    pull(dimessi_guariti)
+  if (input[['is-delta']]) {
+    recovered %<>% diff()
+  }
+  recovered %<>%
+    tail(1) %>% 
+    format(big.mark = '.', decimal.mark = ',') 
   valueBox(
     value = recovered,
     icon = "fa-thumbs-up"
@@ -97,10 +124,15 @@ renderValueBox({
 
 ```{r}
 renderValueBox({
-  deaths <- covid$get(input[['region']]) %>%
-      tail(1) %>% 
-      pull(deceduti) %>%
-      format(big.mark = '.', decimal.mark = ',')
+  deaths <-
+    tbl_covid() %>%
+    pull(deceduti)
+  if (input[['is-delta']]) {
+    deaths %<>% diff()
+  }
+  deaths %<>%
+    tail(1) %>%
+    format(big.mark = '.', decimal.mark = ',')
   valueBox(
     value = deaths,
     icon = "fa-times",
@@ -119,16 +151,6 @@ fillCol(
   height = 600,
   flex = c(NA, 1), 
   inputPanel(
-    selectInput(
-      inputId = 'is-delta',
-      label = 'Please select a metric:',
-      choices = list(
-        'Cumulative' = FALSE,
-        'New Cases Only' = TRUE
-      ),
-      multiple = FALSE,
-      selectize = FALSE
-    ),
     selectInput(
       inputId = 'log-scale',
       label = 'Please select a scale:',
@@ -172,6 +194,88 @@ fillCol(
     )
   })
 )
+```
+
+Parameters
+=======================================================================
+
+Row
+-----------------------------------------------------------------------
+
+```{r, echo = FALSE}
+tbl_sir <- reactive({
+  covid$sir(input[['region']])
+})
+```
+
+### Reproduction Number (R0) {.value-box}
+
+```{r}
+renderValueBox({
+  r0 <-
+    tbl_sir() %>%
+    filter(data == Sys.Date()) %>%
+    pull(R0) %>%
+    round(3) %>%
+    format(big.mark = '.', decimal.mark = ',', nsmall = 3)
+  valueBox(
+    value = r0,
+    icon = "fa-project-diagram"
+  )
+})
+```
+
+### Recovery Rate (gamma) {.value-box}
+
+```{r}
+renderValueBox({
+  gamma <-
+    tbl_sir() %>%
+    filter(data == Sys.Date()) %>%
+    pull(gamma) %>%
+    multiply_by(100) %>%
+    round() %>%
+    format(big.mark = '.', decimal.mark = ',', nsmall = 0) %>%
+    paste0('%')
+  valueBox(
+    value = gamma,
+    icon = "fa-thumbs-up"
+  )
+})
+```
+
+### Mortality Rate (rho) {.value-box}
+
+```{r}
+renderValueBox({
+  rho <-
+    tbl_sir() %>%
+    filter(data == Sys.Date() - 2) %>%
+    pull(rho) %>%
+    multiply_by(100) %>%
+    round() %>%
+    format(big.mark = '.', decimal.mark = ',', nsmall = 0) %>%
+    paste0('%')
+  valueBox(
+    value = rho,
+    icon = "fa-times",
+    color = 'warning'
+  )
+})
+```
+
+Row
+-----------------------------------------------------------------------
+
+### SIR model parameters
+
+```{r}
+renderHighchart({
+  covid$plot_param(
+    region = input[['region']],
+    fit_date = input[['fit-date']]
+  )
+})
 ```
 
 Raw Data
