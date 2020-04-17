@@ -347,7 +347,7 @@ Covid <- R6::R6Class(
         ) {
             hc <-
                 highchart() %>%
-                hc_chart(zoomType = 'x') %>%
+                hc_chart(type = 'spline', zoomType = 'x') %>%
                 hc_subtitle(text = 'Click and drag in the plot area to zoom in') %>%
                 hc_xAxis(type = 'datetime') %>%
                 hc_yAxis_multiples(
