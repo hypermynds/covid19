@@ -4,7 +4,7 @@ output:
   flexdashboard::flex_dashboard:
     orientation: rows
     social: menu
-    source_code: "https://github.com/msaltieri/covid19"
+    source_code: "https://github.com/hypermynds/covid19"
     favicon: favicon.png
 runtime: shiny
 ---

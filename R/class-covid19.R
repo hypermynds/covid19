@@ -367,7 +367,7 @@ Covid <- R6::R6Class(
                 )
             tbl_forecast <-
                 try(
-                    self$sir(region, fit_date, Sys.Date()) %>%
+                    self$sir(region, fit_date, fit_date + 1) %>%
                         dplyr::mutate_at(vars(beta, gamma, rho, R0), round, digits = 3) %>%
                         dplyr::mutate(data = datetime_to_timestamp(data)),
                     silent = TRUE
