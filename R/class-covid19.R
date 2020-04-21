@@ -93,7 +93,7 @@ Covid <- R6::R6Class(
                             TRUE ~ denominazione_regione
                         )
                 ) %>%
-                dplyr::select(-stato, -codice_regione, -lat, -long, -note_it, -note_en) %>%
+                dplyr::select(-stato, -codice_regione, -lat, -long, -casi_testati, -note_it, -note_en) %>%
                 dplyr::group_by(data, denominazione_regione) %>%
                 dplyr::summarise_all(sum) %>%
                 dplyr::ungroup()
