@@ -37,5 +37,6 @@ tbl_output %>%
     })
 
 tbl_output %>%
+    filter(data >= '2020-03-15') %>%
     summarise(100 * mean(abs(error))) %>%
     pull()

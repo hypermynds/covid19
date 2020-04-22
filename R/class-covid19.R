@@ -78,7 +78,8 @@ Covid <- R6::R6Class(
         update = function() {
             private$tab <-
                 private$repo %>%
-                readr::read_csv(col_types = readr::cols()) %>%
+                readr::read_csv(col_types = 'T-cc--iiiiiiiiiii---') %>%
+                # readr::read_csv(col_types = readr::cols()) %>%
                 dplyr::mutate(
                     data = lubridate::as_date(data),
                     data = dplyr::case_when(
@@ -93,7 +94,7 @@ Covid <- R6::R6Class(
                             TRUE ~ denominazione_regione
                         )
                 ) %>%
-                dplyr::select(-stato, -codice_regione, -lat, -long, -casi_testati, -note_it, -note_en) %>%
+                dplyr::select(-codice_regione) %>%
                 dplyr::group_by(data, denominazione_regione) %>%
                 dplyr::summarise_all(sum) %>%
                 dplyr::ungroup()
