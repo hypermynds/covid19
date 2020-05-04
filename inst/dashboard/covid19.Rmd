@@ -2,6 +2,7 @@
 title: "HM COVID-19 Monitor"
 output: 
   flexdashboard::flex_dashboard:
+    vertical_layout: scroll
     orientation: rows
     social: menu
     source_code: "https://github.com/hypermynds/covid19"
