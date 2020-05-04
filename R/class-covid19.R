@@ -107,11 +107,10 @@ Covid <- R6::R6Class(
         sir = function(
             region = 'ITA',
             fit_date = max(self$dates()),
-            end_date = as.Date('2020-05-31')
+            end_date = as.Date('2020-06-30')
         ) {
             tbl_data <-
                 Covid$new()$get(region) %>%
-                # mutate(R = deceduti + dimessi_guariti) %>%
                 dplyr::select(
                     data,
                     X = totale_positivi,
@@ -140,7 +139,7 @@ Covid <- R6::R6Class(
                         rho = (D_1 - D) / ((R_1 - R) + (D_1 - D))
                     )
                 # Exponential regression
-                for (field in c('beta')) {
+                for (field in c('beta', 'gamma', 'rho')) {
                     fit <- lm(
                         formula = log(get(field) + 1e-6) ~ data,
                         data = tidyr::drop_na(tbl_data)
@@ -149,18 +148,18 @@ Covid <- R6::R6Class(
                         exp(predict(fit, tbl_data$data[i - 1])) - 1e-6
                 }
                 # The mean of the last values is the proxy for the recovery rate
-                tbl_data[i - 1, 'gamma'] <-
-                    tbl_data %>%
-                    dplyr::slice((i - 6):(i - 2)) %>%
-                    dplyr::pull(gamma) %>%
-                    mean()
+                # tbl_data[i - 1, 'gamma'] <-
+                #     tbl_data %>%
+                #     dplyr::slice((i - 6):(i - 2)) %>%
+                #     dplyr::pull(gamma) %>%
+                #     mean()
                 # Decreasing step function for the mortality rate
-                fix_rate <- ifelse(
-                    i < 50,
-                    tbl_data[(i - 5):(i - 2), 'rho'] %>% dplyr::pull() %>% mean(),
-                    ifelse(i < 70, 0.20, 0.10)
-                )
-                tbl_data[i - 1, 'rho'] <- fix_rate
+                # fix_rate <- ifelse(
+                #     i < 50,
+                #     tbl_data[(i - 5):(i - 2), 'rho'] %>% dplyr::pull() %>% mean(),
+                #     ifelse(i < 70, 0.20, 0.10)
+                # )
+                # tbl_data[i - 1, 'rho'] <- fix_rate
                 # Compute new fields
                 tbl_data$X[i] <-
                     as.integer((1 + tbl_data$beta[i - 1] - tbl_data$gamma[i - 1]) * tbl_data$X[i - 1])
@@ -342,7 +341,7 @@ Covid <- R6::R6Class(
 
         #' @description
         #' This plots a linechart of the model parameters.
-        plot_param = function(
+            plot_param = function(
             region = 'ITA',
             fit_date = max(self$dates())
         ) {
@@ -353,7 +352,7 @@ Covid <- R6::R6Class(
                 hc_xAxis(type = 'datetime') %>%
                 hc_yAxis_multiples(
                     list(
-                        title = list(text = 'Rates')
+                        title = list(text = 'Rates (%)')
                     ),
                     list(
                         title = list(
@@ -392,10 +391,12 @@ Covid <- R6::R6Class(
                     ) %>%
                     hc_add_series(
                         data = tbl_forecast %>%
+                            dplyr::mutate(beta = round(100 * beta, 1)) %>%
                             dplyr::select(data, beta) %>%
                             list_parse2(),
                         name = 'Infection rate',
                         color = JS("Highcharts.getOptions().colors[3]"),
+                        tooltip = list(valueSuffix = '%'),
                         marker = list(
                             fillColor = 'white',
                             symbol = 'circle',
@@ -406,10 +407,12 @@ Covid <- R6::R6Class(
                     ) %>%
                     hc_add_series(
                         data = tbl_forecast %>%
+                            dplyr::mutate(gamma = round(100 * gamma, 1)) %>%
                             dplyr::select(data, gamma) %>%
                             list_parse2(),
                         name = 'Recovery rate',
                         color = JS("Highcharts.getOptions().colors[2]"),
+                        tooltip = list(valueSuffix = '%'),
                         marker = list(
                             fillColor = 'white',
                             symbol = 'circle',
@@ -420,10 +423,12 @@ Covid <- R6::R6Class(
                     ) %>%
                     hc_add_series(
                         data = tbl_forecast %>%
+                            dplyr::mutate(rho = round(100 * rho, 1)) %>%
                             dplyr::select(data, rho) %>%
                             list_parse2(),
                         name = 'Mortality Rate',
                         color = JS("Highcharts.getOptions().colors[1]"),
+                        tooltip = list(valueSuffix = '%'),
                         marker = list(
                             fillColor = 'white',
                             symbol = 'circle',

@@ -102,7 +102,7 @@ model.
 \if{html}{\out{<div class="r">}}\preformatted{Covid$sir(
   region = "ITA",
   fit_date = max(self$dates()),
-  end_date = as.Date("2020-05-31")
+  end_date = as.Date("2020-06-30")
 )}\if{html}{\out{</div>}}
 }
 

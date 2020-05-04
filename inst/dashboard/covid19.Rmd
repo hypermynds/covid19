@@ -306,3 +306,28 @@ renderDataTable({
   )
 })
 ```
+
+About
+=======================================================================
+
+**Hypermynds** is an innovative start-up focused on using the power of data
+science and artificial intelligence to revolutionize the decision-making
+processes within companies.
+
+Using advanced mathematics, Hypermynds automates the most critical high-impact
+processes, building tailored cross-functional solutions that have a broad and
+substantial impact on *Finance & Accounting*, *Marketing & Sales*,
+*Risk Management & Control* and *Trading & Procurement*.
+
+We are mainly **R Developers**. We love to code using R and we think the R
+ecosystem is the greatest framework available to work in data science
+performing everyday data analysis and producing automated reports.
+
+Please, visit our [web site](https://www.hypermynds.com) for contact
+information and the [GitHub repo](https://github.com/hypermynds/covid19) for
+any issue related to this dashboard.
+
+----
+
+Package `hypermynds/covid19` version
+**`r packageVersion('covid19') %>% as.character()`**
