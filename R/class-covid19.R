@@ -78,7 +78,7 @@ Covid <- R6::R6Class(
         update = function() {
             private$tab <-
                 private$repo %>%
-                readr::read_csv(col_types = 'T-cc--iiiiiiiiiii---') %>%
+                readr::read_csv(col_types = 'T-cc--iiiiiiiii--ii--') %>%
                 # readr::read_csv(col_types = readr::cols()) %>%
                 dplyr::mutate(
                     data = lubridate::as_date(data),
@@ -88,7 +88,8 @@ Covid <- R6::R6Class(
                     ),
                     denominazione_regione =
                         dplyr::case_when(
-                            codice_regione == '04' ~ 'Trentino-Alto Adige',
+                            codice_regione == '21' ~ 'Trentino-Alto Adige',
+                            codice_regione == '22' ~ 'Trentino-Alto Adige',
                             codice_regione == '06' ~ 'Friuli-Venezia Giulia',
                             codice_regione == '08' ~ 'Emilia-Romagna',
                             TRUE ~ denominazione_regione
@@ -107,7 +108,7 @@ Covid <- R6::R6Class(
         sir = function(
             region = 'ITA',
             fit_date = max(self$dates()),
-            end_date = as.Date('2020-06-30')
+            end_date = as.Date('2020-09-30')
         ) {
             tbl_data <-
                 Covid$new()$get(region) %>%
@@ -267,7 +268,7 @@ Covid <- R6::R6Class(
         plot_sir = function(
             region = 'ITA',
             fit_date = max(self$dates()),
-            end_date = as.Date('2020-06-30')
+            end_date = as.Date('2020-09-30')
         ) {
             hc <-
                 highchart() %>%

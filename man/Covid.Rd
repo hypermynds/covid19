@@ -102,7 +102,7 @@ model.
 \if{html}{\out{<div class="r">}}\preformatted{Covid$sir(
   region = "ITA",
   fit_date = max(self$dates()),
-  end_date = as.Date("2020-06-30")
+  end_date = as.Date("2020-09-30")
 )}\if{html}{\out{</div>}}
 }
 
@@ -171,7 +171,7 @@ This plots a linechart of the forecast.
 \if{html}{\out{<div class="r">}}\preformatted{Covid$plot_sir(
   region = "ITA",
   fit_date = max(self$dates()),
-  end_date = as.Date("2020-06-30")
+  end_date = as.Date("2020-09-30")
 )}\if{html}{\out{</div>}}
 }
 
