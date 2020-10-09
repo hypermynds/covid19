@@ -297,7 +297,7 @@ renderDataTable({
       dom = 't',
       deferRender = TRUE,
       ordering = FALSE,
-      scrollY = 512,
+      scrollY = 800,
       scroller = TRUE,
       columnDefs = list(
         list(

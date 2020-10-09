@@ -108,8 +108,15 @@ Covid <- R6::R6Class(
         sir = function(
             region = 'ITA',
             fit_date = max(self$dates()),
-            end_date = as.Date('2020-09-30')
+            end_date = as.Date('2020-12-31')
         ) {
+            start_date <-
+                ifelse(
+                    fit_date <= as.Date('2020-07-31'),
+                    min(self$dates()),
+                    '2020-07-31'
+                ) %>%
+                as.Date(origin = '1970-01-01')
             tbl_data <-
                 Covid$new()$get(region) %>%
                 dplyr::select(
@@ -118,13 +125,29 @@ Covid <- R6::R6Class(
                     R = dimessi_guariti,
                     D = deceduti
                 ) %>%
-                dplyr::filter(data <= fit_date) %>%
+                dplyr::filter(dplyr::between(data, start_date, fit_date))
+            if (fit_date > as.Date('2020-07-31')) {
+                tbl_data %<>%
+                    dplyr::bind_cols(
+                        tbl_data %>%
+                            head(1) %>%
+                            dplyr::select(X0 = X, R0 = R, D0 = D)
+                    ) %>%
+                    dplyr::mutate(
+                        X = X - X0,
+                        R = R - R0,
+                        D = D - D0
+                    ) %>%
+                    dplyr::select(-X0, -R0, -D0) %>%
+                    tail(-1)
+            }
+            tbl_data %<>%
                 dplyr::bind_rows(
                     dplyr::tibble(
                         data = seq(fit_date + 1, end_date, by = '1 day'),
-                        X = as.numeric(NA),
-                        R = as.numeric(NA),
-                        D = as.numeric(NA)
+                        X = NA_real_,
+                        R = NA_real_,
+                        D = NA_real_
                     )
                 )
             idx <- which(is.na(tbl_data$X))
@@ -143,10 +166,17 @@ Covid <- R6::R6Class(
                 for (field in c('beta', 'gamma', 'rho')) {
                     fit <- lm(
                         formula = log(get(field) + 1e-6) ~ data,
-                        data = tidyr::drop_na(tbl_data)
+                        data = tidyr::drop_na(tbl_data) %>% tail(50)
                     )
                     tbl_data[i - 1, field] <-
                         exp(predict(fit, tbl_data$data[i - 1])) - 1e-6
+                }
+                # The mortality rate cannot be negative
+                if (round(tbl_data[i - 1, 'rho'], 3) <= 0) {
+                    tbl_data[i - 1, 'rho'] <-
+                        tbl_data[(i - 6):(i - 2), 'rho'] %>%
+                        pull(rho) %>%
+                        mean()
                 }
                 # The mean of the last values is the proxy for the recovery rate
                 # tbl_data[i - 1, 'gamma'] <-
@@ -210,10 +240,10 @@ Covid <- R6::R6Class(
             tbl_hist %<>% dplyr::mutate(data = datetime_to_timestamp(data))
             hc <-
                 highchart() %>%
-                hc_chart(type = 'column', zoomType = 'x') %>%
+                hc_chart(type = 'areaspline', zoomType = 'x') %>%
+                hc_plotOptions(areaspline = list(stacking = 'normal')) %>%
                 hc_subtitle(text = 'Click and drag in the plot area to zoom in') %>%
                 hc_xAxis(type = 'datetime') %>%
-                hc_plotOptions(series = list(stacking = 'normal')) %>%
                 hc_tooltip(
                     footerFormat = '<b>  Total: {point.total:,0f}</b>',
                     shared = TRUE
@@ -268,7 +298,7 @@ Covid <- R6::R6Class(
         plot_sir = function(
             region = 'ITA',
             fit_date = max(self$dates()),
-            end_date = as.Date('2020-09-30')
+            end_date = as.Date('2020-12-31')
         ) {
             hc <-
                 highchart() %>%

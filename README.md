@@ -2,7 +2,7 @@
 
 <!-- badges: start -->
 [![Build Status](https://travis-ci.org/msaltieri/covid19.svg?branch=master)](https://travis-ci.org/msaltieri/covid19)
-[![Version](https://img.shields.io/badge/version-v1.5.5-blue.svg)](#)
+[![Version](https://img.shields.io/badge/version-v1.6.0-blue.svg)](#)
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://www.tidyverse.org/lifecycle/#stable)
 [![eRum2020::CovidR](https://badgen.net/https/runkit.io/erum2020-covidr/badge/branches/master/covid19-sir-model?cache=300)](https://milano-r.github.io/erum2020-covidr-contest/covid19-sir-model.html)
 <!-- badges: end -->
