@@ -127,12 +127,12 @@ Covid <- R6::R6Class(
                 ) %>%
                 dplyr::filter(dplyr::between(data, start_date, fit_date))
             if (fit_date > as.Date('2020-07-31')) {
+                first_row <-
+                    tbl_data %>%
+                    head(1) %>%
+                    dplyr::select(X0 = X, R0 = R, D0 = D)
                 tbl_data %<>%
-                    dplyr::bind_cols(
-                        tbl_data %>%
-                            head(1) %>%
-                            dplyr::select(X0 = X, R0 = R, D0 = D)
-                    ) %>%
+                    dplyr::bind_cols(first_row) %>%
                     dplyr::mutate(
                         X = X - X0,
                         R = R - R0,
@@ -200,6 +200,13 @@ Covid <- R6::R6Class(
                     as.integer(tbl_data$D[i - 1] + tbl_data$gamma[i - 1] * tbl_data$rho[i - 1] * tbl_data$X[i - 1])
             }
             tbl_data %>%
+                dplyr::bind_cols(first_row) %>%
+                dplyr::mutate(
+                    X = X + X0,
+                    R = R + R0,
+                    D = D + D0
+                ) %>%
+                dplyr::select(-X0, -R0, -D0) %>%
                 dplyr::mutate(
                     R0 = beta / gamma,
                     total = X + R + D,
